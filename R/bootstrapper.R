@@ -1,24 +1,64 @@
-bootrapper <- function(
+bootstrapper <- function(
   path = ".",
-  author = person(
-    "Visruth",
-    "Srimath Kandali",
-    ,
-    "public@visruth.com",
-    role = c("aut", "cre", "cph"),
-    comment = c(ORCID = "0009-0005-9097-0688")
-  ),
-  private = TRUE
+  fields,
+  private = TRUE,
+  ...
 ) {
-  create_package(path, author, private)
+  create_package(path, fields, private, ...)
   pkg_setup()
   invisible(NULL)
 }
 
+create_package <- function(
+  path = ".",
+  fields = getOption(
+    "usethis.description",
+    list(
+      "Authors@R" = person(
+        "Visruth",
+        "Srimath Kandali",
+        ,
+        "public@visruth.com",
+        role = c("aut", "cre", "cph"),
+        comment = c(ORCID = "0009-0005-9097-0688")
+      )
+    )
+  ),
+  private = TRUE,
+  ...
+) {
+  usethis::create_package(path = path, fields = fields, ...)
+  unlink("*.Rproj")
+  find_replace_in_file(
+    "^\\^.*\\\\\\.Rproj\\$$",
+    "",
+    ".Rbuildignore",
+    fixed = FALSE
+  )
+  find_replace_in_file(
+    "^\\^\\\\\\.Rproj\\\\\\.user\\$$",
+    "",
+    ".Rbuildignore",
+    fixed = FALSE
+  )
+  readLines(".Rbuildignore", warn = FALSE) |>
+    Filter(nzchar, x = _) |>
+    writeLines(".Rbuildignore")
+  use_license(author)
+  usethis::use_github(private = private)
+  invisible(NULL)
+}
+
 pkg_setup <- function() {
-  # TODO: check if this is R package
+  tryCatch(
+    usethis::use_testthat(),
+    error = function(...) {
+      usethis::ui_stop(
+        "This doesn't appear to be a package. Ensure you are in the right directory, or run {usethis::ui_code('create_package()')}."
+      )
+    }
+  )
   usethis::use_readme_md(open = FALSE)
-  usethis::use_testthat()
   usethis::use_news_md(open = FALSE)
 
   # GitHub Actions setup
@@ -68,39 +108,7 @@ pkg_setup <- function() {
   invisible(NULL)
 }
 
-create_package <- function(
-  path = ".",
-  author = person(
-    "Visruth",
-    "Srimath Kandali",
-    ,
-    "public@visruth.com",
-    role = c("aut", "cre", "cph"),
-    comment = c(ORCID = "0009-0005-9097-0688")
-  ),
-  private = TRUE
-) {
-  usethis::create_package(path = path, fields = list("Authors@R" = author))
-  unlink("*.Rproj")
-  find_replace_in_file(
-    "^\\^.*\\\\\\.Rproj\\$$",
-    "",
-    ".Rbuildignore",
-    fixed = FALSE
-  )
-  find_replace_in_file(
-    "^\\^\\\\\\.Rproj\\\\\\.user\\$$",
-    "",
-    ".Rbuildignore",
-    fixed = FALSE
-  )
-  readLines(".Rbuildignore", warn = FALSE) |>
-    Filter(nzchar, x = _) |>
-    writeLines(".Rbuildignore")
-  use_license(author)
-  usethis::use_github(private = private)
-  invisible(NULL)
-}
+# Helpers ---------------------------------------------------------------------
 
 use_license <- function(author) {
   license_choices <- c(
