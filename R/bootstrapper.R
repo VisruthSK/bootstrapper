@@ -97,7 +97,58 @@ create_package <- function(
   readLines(".Rbuildignore", warn = FALSE) |>
     Filter(nzchar, x = _) |>
     writeLines(".Rbuildignore")
-  # TODO: CLI message select a license; make sure you declare import using usethis useimportfrom
+  use_license(author)
   usethis::use_github(private = private)
   invisible(NULL)
+}
+
+use_license <- function(author) {
+  license_choices <- c(
+    "MIT" = "use_mit_license",
+    "GPL" = "use_gpl_license",
+    "GPL-3" = "use_gpl3_license",
+    "LGPL" = "use_lgpl_license",
+    "AGPL" = "use_agpl_license",
+    "AGPL-3" = "use_agpl3_license",
+    "Apache-2.0" = "use_apl2_license",
+    "Apache" = "use_apache_license",
+    "CC BY" = "use_ccby_license",
+    "CC0" = "use_cc0_license",
+    "Proprietary" = "use_proprietary_license",
+    "Skip for now" = FALSE
+  )
+  usethis::ui_info("Select a license for this package.")
+  selected_fn <- if (interactive()) {
+    unname(
+      license_choices[[utils::menu(
+        choices = names(license_choices),
+        title = "License"
+      )]]
+    )
+  } else {
+    FALSE
+  }
+  if (selected_fn) {
+    copyright_holder <- format(author, include = c("given", "family"))
+    switch(
+      selected_fn,
+      use_mit_license = usethis::use_mit_license(
+        copyright_holder = copyright_holder
+      ),
+      use_gpl_license = usethis::use_gpl_license(),
+      use_gpl3_license = usethis::use_gpl3_license(),
+      use_lgpl_license = usethis::use_lgpl_license(),
+      use_agpl_license = usethis::use_agpl_license(),
+      use_agpl3_license = usethis::use_agpl3_license(),
+      use_apl2_license = usethis::use_apl2_license(),
+      use_apache_license = usethis::use_apache_license(),
+      use_ccby_license = usethis::use_ccby_license(),
+      use_cc0_license = usethis::use_cc0_license(),
+      use_proprietary_license = usethis::use_proprietary_license(
+        copyright_holder = copyright_holder
+      )
+    )
+  } else {
+    usethis::ui_warn("No license selected; leaving current license unchanged.")
+  }
 }
