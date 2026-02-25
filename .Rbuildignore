@@ -1,0 +1,7 @@
+^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^[.]?air[.]toml$
+^\.vscode$
+^LICENSE\.md$
