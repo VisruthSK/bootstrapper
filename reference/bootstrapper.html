@@ -45,11 +45,9 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">bootstrapper</span><span class="op">(</span></span>
-<span>  path <span class="op">=</span> <span class="st">"."</span>,</span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"usethis.description"</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`Authors@R` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/person.html" class="external-link">person</a></span><span class="op">(</span><span class="st">"Visruth"</span>,</span>
 <span>    <span class="st">"Srimath Kandali"</span>, , <span class="st">"public@visruth.com"</span>, role <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"aut"</span>, <span class="st">"cre"</span>, <span class="st">"cph"</span><span class="op">)</span>, comment <span class="op">=</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>ORCID <span class="op">=</span> <span class="st">"0009-0005-9097-0688"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  private <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  setup_gha <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  setup_dependabot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  setup_AGENTS <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -62,17 +60,9 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-path">path<a class="anchor" aria-label="anchor" href="#arg-path"></a></dt>
-<dd><p>Path where the package should be created. Defaults to <code>"."</code></p></dd>
-
-
-<dt id="arg-fields">fields<a class="anchor" aria-label="anchor" href="#arg-fields"></a></dt>
+<dl><dt id="arg-fields">fields<a class="anchor" aria-label="anchor" href="#arg-fields"></a></dt>
 <dd><p>Named list of <code>DESCRIPTION</code> fields passed to
 <code><a href="https://usethis.r-lib.org/reference/create_package.html" class="external-link">usethis::create_package()</a></code>. See <code><a href="https://usethis.r-lib.org/reference/use_description.html" class="external-link">usethis::use_description()</a></code></p></dd>
-
-
-<dt id="arg-private">private<a class="anchor" aria-label="anchor" href="#arg-private"></a></dt>
-<dd><p>Whether to create the GitHub repository as private. Defaults to <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg-setup-gha">setup_gha<a class="anchor" aria-label="anchor" href="#arg-setup-gha"></a></dt>

@@ -69,12 +69,12 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>The package is optimized for my usage by default, so calling the main function bare is not advised unless you are me.</p>
+<p>The package is optimized for my usage by default, so calling the main function bare is not advised unless you are me. You should call it in a directory which is already tracked by git and already has GitHub as a remote.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bootstrapper</span><span class="op">:</span><span class="fu"><a href="reference/bootstrapper.html">bootstrapper</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">bootstrapper</span><span class="fu">::</span><span class="fu"><a href="reference/bootstrapper.html">bootstrapper</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The main thing to set is the fields option, where you should put your own name, email, etc. instead.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bootstrapper</span><span class="op">:</span><span class="fu"><a href="reference/bootstrapper.html">bootstrapper</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="fu">bootstrapper</span><span class="fu">::</span><span class="fu"><a href="reference/bootstrapper.html">bootstrapper</a></span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Authors@R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/person.html" class="external-link">person</a></span><span class="op">(</span></span>
 <span>      <span class="st">"Visruth"</span>,</span>

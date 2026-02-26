@@ -1,24 +1,15 @@
 # Create a Package and Connect GitHub
 
-Create a package, apply `.Rbuildignore` cleanup, prompt for a license,
-and connect the package to GitHub.
+Create a package in root, prompts for a license, cleans up build ignore
+file.
 
 ## Usage
 
 ``` r
-create_package(
-  path = ".",
-  fields = getOption("usethis.description"),
-  private = TRUE,
-  ...
-)
+create_package(fields = getOption("usethis.description"), ...)
 ```
 
 ## Arguments
-
-- path:
-
-  Path where the package should be created. Defaults to `"."`
 
 - fields:
 
@@ -26,11 +17,6 @@ create_package(
   [`usethis::create_package()`](https://usethis.r-lib.org/reference/create_package.html).
   See
   [`usethis::use_description()`](https://usethis.r-lib.org/reference/use_description.html)
-
-- private:
-
-  Whether to create the GitHub repository as private. Defaults to
-  `TRUE`.
 
 - ...:
 
