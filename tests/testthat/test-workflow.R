@@ -1,23 +1,23 @@
 run_workflow_fixture <- function(setup_AGENTS = TRUE) {
   tmp <- tempfile("bootstrapper-workflow-")
   dir.create(tmp)
+  pkg <- "demoPkg"
+  pkg_path <- fs::path(tmp, pkg)
+  dir.create(pkg_path)
   old <- setwd(tmp)
   on.exit(setwd(old), add = TRUE)
+  setwd(pkg_path)
 
-  pkg <- "demoPkg"
   fields <- list("Package" = pkg)
   state <- new.env(parent = emptyenv())
-  state$github_private <- NULL
   state$action_calls <- list()
 
   testthat::local_mocked_bindings(
     create_package = function(path, fields, ...) {
-      expect_identical(path, pkg)
+      expect_identical(path, ".")
       expect_identical(fields, list("Package" = pkg))
       expect_identical(list(...), list(open = FALSE))
 
-      fs::dir_create(path)
-      setwd(path)
       writeLines(
         c("^.*\\.Rproj$", "^\\.Rproj\\.user$", "README\\.Rmd"),
         ".Rbuildignore"
@@ -25,17 +25,6 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
       writeLines(c("Package: demoPkg", "Version: 0.0.0.9000"), "DESCRIPTION")
       writeLines("project", "demoPkg.Rproj")
       fs::dir_create(fs::path(".git", "hooks"))
-      NULL
-    },
-    use_github = function(private) {
-      state$github_private <- private
-      writeLines(
-        c(
-          "[remote \"origin\"]",
-          "\turl = git@github.com:example/demoPkg.git"
-        ),
-        fs::path(".git", "config")
-      )
       NULL
     },
     use_testthat = function() {
@@ -133,19 +122,24 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
     .package = "bootstrapper"
   )
 
+  testthat::local_mocked_bindings(
+    update_wordlist = function(confirm = FALSE) {
+      expect_false(confirm)
+      NULL
+    },
+    .package = "spelling"
+  )
+
   expect_null(
     bootstrapper::bootstrapper(
-      path = pkg,
       fields = fields,
-      private = TRUE,
       setup_AGENTS = setup_AGENTS,
       open = FALSE
     )
   )
 
   list(
-    pkg_path = fs::path(tmp, pkg),
-    github_private = state$github_private,
+    pkg_path = pkg_path,
     action_calls = state$action_calls
   )
 }
@@ -180,8 +174,6 @@ snapshot_workflow_files <- function(fixture, files) {
 test_that("workflow step: create_package creates git-backed package skeleton", {
   fixture <- run_workflow_fixture()
 
-  expect_true(isTRUE(fixture$github_private))
-  expect_true(file.exists(file_in_pkg(fixture, ".git", "config")))
   expect_false(file.exists(file_in_pkg(fixture, "demoPkg.Rproj")))
 
   old <- setwd(fixture$pkg_path)

@@ -138,6 +138,14 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
     .package = "bootstrapper"
   )
 
+  testthat::local_mocked_bindings(
+    update_wordlist = function(confirm = FALSE) {
+      expect_false(confirm)
+      NULL
+    },
+    .package = "spelling"
+  )
+
   expect_null(bootstrapper::pkg_setup())
 
   expect_true("testthat" %in% calls$actions)
@@ -186,6 +194,14 @@ test_that("pkg_setup skips optional sections when disabled", {
     .package = "bootstrapper"
   )
 
+  testthat::local_mocked_bindings(
+    update_wordlist = function(confirm = FALSE) {
+      expect_false(confirm)
+      NULL
+    },
+    .package = "spelling"
+  )
+
   expect_null(
     bootstrapper::pkg_setup(
       setup_gha = FALSE,
@@ -219,6 +235,14 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
     try_air_jarl_format = function() NULL,
     .package = "bootstrapper"
+  )
+
+  testthat::local_mocked_bindings(
+    update_wordlist = function(confirm = FALSE) {
+      expect_false(confirm)
+      NULL
+    },
+    .package = "spelling"
   )
 
   expect_null(bootstrapper::pkg_setup(
