@@ -5,7 +5,7 @@
 \alias{bootstrapper-package}
 \title{bootstrapper: Opinionated R Package Quickstart}
 \description{
-Quickly start new R packages, adding some opinionated default GHA, suggested extensions, etc.
+Bootstrap new R packages with strongly opinionated defaults. Creates the package scaffold, wires up tests, README and NEWS, configures GitHub Actions and Dependabot, adds Air/Jarl setup, and drop in a default AGENTS.md for building R packages.
 }
 \seealso{
 Useful links:

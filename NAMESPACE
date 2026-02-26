@@ -3,5 +3,8 @@
 export(bootstrapper)
 export(create_package)
 export(pkg_setup)
+export(setup_agents)
+export(setup_dependabot)
+export(setup_gha)
 export(use_license)
 importFrom(utils,person)

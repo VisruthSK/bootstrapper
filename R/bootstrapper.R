@@ -172,8 +172,7 @@ try_air_jarl_format <- function() {
 #' workflow references.
 #'
 #' @return Invisibly returns `NULL`.
-#' @keywords internal
-#' @noRd
+#' @export
 setup_gha <- function() {
   usethis::use_github_action("check-standard", badge = TRUE)
   usethis::use_github_action("test-coverage", badge = TRUE)
@@ -199,8 +198,7 @@ setup_gha <- function() {
 #' Writes a default Dependabot configuration for GitHub Actions.
 #'
 #' @return Invisibly returns `NULL`.
-#' @keywords internal
-#' @noRd
+#' @export
 setup_dependabot <- function() {
   copy_template_file("dependabot.yml", fs::path(".github", "dependabot.yml"))
 }
@@ -210,8 +208,7 @@ setup_dependabot <- function() {
 #' Copies an opinionated, concise AGENTS.md for R package development.
 #'
 #' @return Invisibly returns `NULL`.
-#' @keywords internal
-#' @noRd
+#' @export
 setup_agents <- function() {
   copy_template_file("AGENTS.md", "AGENTS.md")
 }
