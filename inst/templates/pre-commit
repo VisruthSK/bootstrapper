@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-air format .
-jarl check . --fix --allow-dirty
+air format . --check || {
+  air format .
+  echo "Air reformatted files. Stage and recommit." >&2
+  exit 1
+}
+
+jarl check . || {
+  jarl check . --fix --allow-dirty || true
+  echo "Jarl fixed issues. Stage and recommit." >&2
+  exit 1
+}
