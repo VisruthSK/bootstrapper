@@ -10,7 +10,8 @@ License: GPL (>= 3)
 URL: https://visruthsk.github.io/bootstrapper/
 Imports: 
     fs,
-    usethis
+    usethis,
+    utils
 Suggests: 
     spelling,
     testthat (>= 3.0.0)

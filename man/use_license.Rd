@@ -4,11 +4,7 @@
 \alias{use_license}
 \title{Choose and Apply a License}
 \usage{
-use_license(author)
-}
-\arguments{
-\item{author}{A \code{\link[utils:person]{utils::person()}} object used when the selected license
-requires a copyright holder.}
+use_license()
 }
 \value{
 Invisibly returns \code{NULL}.

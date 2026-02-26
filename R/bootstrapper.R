@@ -64,7 +64,7 @@ create_package <- function(
   readLines(".Rbuildignore", warn = FALSE) |>
     Filter(nzchar, x = _) |>
     writeLines(".Rbuildignore")
-  use_license(author)
+  use_license()
   usethis::use_github(private = private)
   invisible(NULL)
 }
@@ -142,12 +142,9 @@ pkg_setup <- function() {
 #' Prompts for a license choice in interactive sessions and applies the selected
 #' `usethis` license helper.
 #'
-#' @param author A [utils::person()] object used when the selected license
-#'   requires a copyright holder.
-#'
 #' @return Invisibly returns `NULL`.
 #' @export
-use_license <- function(author) {
+use_license <- function() {
   license_choices <- c(
     "MIT" = "use_mit_license",
     "GPL" = "use_gpl_license",
@@ -174,12 +171,9 @@ use_license <- function(author) {
     FALSE
   }
   if (selected_fn) {
-    copyright_holder <- format(author, include = c("given", "family"))
     switch(
       selected_fn,
-      use_mit_license = usethis::use_mit_license(
-        copyright_holder = copyright_holder
-      ),
+      use_mit_license = usethis::use_mit_license(),
       use_gpl_license = usethis::use_gpl_license(),
       use_gpl3_license = usethis::use_gpl3_license(),
       use_lgpl_license = usethis::use_lgpl_license(),
@@ -189,9 +183,7 @@ use_license <- function(author) {
       use_apache_license = usethis::use_apache_license(),
       use_ccby_license = usethis::use_ccby_license(),
       use_cc0_license = usethis::use_cc0_license(),
-      use_proprietary_license = usethis::use_proprietary_license(
-        copyright_holder = copyright_holder
-      )
+      use_proprietary_license = usethis::use_proprietary_license()
     )
   } else {
     usethis::ui_warn("No license selected; leaving current license unchanged.")
