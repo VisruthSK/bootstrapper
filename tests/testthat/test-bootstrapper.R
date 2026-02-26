@@ -244,6 +244,7 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
   actions <- list(
     github_actions = list(),
     replacements = character(),
+    workflow_replacements = character(),
     spell = FALSE,
     air = FALSE,
     writes = character()
@@ -274,6 +275,13 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
       )
       NULL
     },
+    find_replace_in_file = function(from, to, file, fixed = TRUE) {
+      actions$workflow_replacements <<- c(
+        actions$workflow_replacements,
+        paste(from, to, file, fixed, sep = " -> ")
+      )
+      NULL
+    },
     copy_template_file = function(template_file, destination) {
       actions$writes <<- c(actions$writes, destination)
       expect_true(template_file %in% c("extensions.json", "jarl.toml"))
@@ -298,6 +306,25 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
       "actions/checkout@v4 -> actions/checkout@v6",
       "actions/upload-artifact@v4 -> actions/upload-artifact@v6",
       "JamesIves/github-pages-deploy-action@v4.5.0 -> JamesIves/github-pages-deploy-action@v4"
+    )
+  )
+  expect_identical(
+    actions$workflow_replacements,
+    c(
+      paste(
+        "token: ${{ secrets.CODECOV_TOKEN }}",
+        "use_oidc: true",
+        fs::path(".github", "workflows", "test-coverage.yaml"),
+        "TRUE",
+        sep = " -> "
+      ),
+      paste(
+        "permissions: read-all",
+        "permissions:\n  contents: read\n  id-token: write",
+        fs::path(".github", "workflows", "test-coverage.yaml"),
+        "TRUE",
+        sep = " -> "
+      )
     )
   )
   expect_true(actions$air)

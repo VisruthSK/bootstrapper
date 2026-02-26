@@ -184,6 +184,17 @@ try_air_jarl_format <- function() {
 setup_gha <- function() {
   usethis::use_github_action("check-standard", badge = TRUE)
   usethis::use_github_action("test-coverage")
+  # swap from codecov tokens to OICD
+  find_replace_in_file(
+    "token: ${{ secrets.CODECOV_TOKEN }}",
+    "use_oidc: true",
+    fs::path(".github", "workflows", "test-coverage.yaml")
+  )
+  find_replace_in_file(
+    "permissions: read-all",
+    "permissions:\n  contents: read\n  id-token: write",
+    fs::path(".github", "workflows", "test-coverage.yaml")
+  )
   usethis::use_github_action(
     url = "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
   )
