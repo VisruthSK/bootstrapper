@@ -4,7 +4,12 @@
 \alias{pkg_setup}
 \title{Apply Opinionated Package Setup}
 \usage{
-pkg_setup(setup_gha = TRUE, setup_dependabot = TRUE, setup_AGENTS = FALSE)
+pkg_setup(
+  setup_gha = TRUE,
+  setup_dependabot = TRUE,
+  setup_AGENTS = FALSE,
+  setup_precommit = TRUE
+)
 }
 \arguments{
 \item{setup_gha}{Whether to configure GitHub Actions setup.}
@@ -12,6 +17,8 @@ pkg_setup(setup_gha = TRUE, setup_dependabot = TRUE, setup_AGENTS = FALSE)
 \item{setup_dependabot}{Whether to write a Dependabot configuration.}
 
 \item{setup_AGENTS}{Whether to write a default AGENTS file.}
+
+\item{setup_precommit}{Whether to write a Bash pre-commit hook.}
 }
 \value{
 Invisibly returns \code{NULL}.

@@ -10,11 +10,17 @@ test_that("bootstrapper orchestrates package creation and setup", {
       expect_identical(list(...), list(open = FALSE))
       NULL
     },
-    pkg_setup = function(setup_gha, setup_dependabot, setup_AGENTS) {
+    pkg_setup = function(
+      setup_gha,
+      setup_dependabot,
+      setup_AGENTS,
+      setup_precommit
+    ) {
       calls <<- c(calls, "pkg_setup")
       expect_false(setup_gha)
       expect_false(setup_dependabot)
       expect_false(setup_AGENTS)
+      expect_false(setup_precommit)
       NULL
     },
     .package = "bootstrapper"
@@ -27,6 +33,7 @@ test_that("bootstrapper orchestrates package creation and setup", {
       private = FALSE,
       setup_gha = FALSE,
       setup_dependabot = FALSE,
+      setup_precommit = FALSE,
       open = FALSE
     )
   )
@@ -123,6 +130,10 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
       calls$sections <<- c(calls$sections, "agents")
       NULL
     },
+    setup_precommit = function() {
+      calls$sections <<- c(calls$sections, "precommit")
+      NULL
+    },
     find_replace_in_file = function(from, to, file, fixed = TRUE) {
       calls$replaced <<- TRUE
       expect_identical(from, "(development version)")
@@ -144,7 +155,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
   expect_true("readme:FALSE" %in% calls$actions)
   expect_true("news:FALSE" %in% calls$actions)
   expect_true("tidy_description" %in% calls$actions)
-  expect_identical(calls$sections, c("gha", "dependabot"))
+  expect_identical(calls$sections, c("gha", "dependabot", "precommit"))
   expect_true(calls$replaced)
   expect_true(calls$formatted)
 })
@@ -174,6 +185,10 @@ test_that("pkg_setup skips optional sections when disabled", {
       called <<- TRUE
       NULL
     },
+    setup_precommit = function() {
+      called <<- TRUE
+      NULL
+    },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
     try_air_jarl_format = function() {
       formatted <<- TRUE
@@ -186,7 +201,8 @@ test_that("pkg_setup skips optional sections when disabled", {
     bootstrapper::pkg_setup(
       setup_gha = FALSE,
       setup_dependabot = FALSE,
-      setup_AGENTS = FALSE
+      setup_AGENTS = FALSE,
+      setup_precommit = FALSE
     )
   )
   expect_false(called)
@@ -216,7 +232,10 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
     .package = "bootstrapper"
   )
 
-  expect_null(bootstrapper::pkg_setup(setup_AGENTS = TRUE))
+  expect_null(bootstrapper::pkg_setup(
+    setup_AGENTS = TRUE,
+    setup_precommit = FALSE
+  ))
   expect_true(called)
 })
 
@@ -277,6 +296,7 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
     actions$replacements,
     c(
       "actions/checkout@v4 -> actions/checkout@v6",
+      "actions/upload-artifact@v4 -> actions/upload-artifact@v6",
       "JamesIves/github-pages-deploy-action@v4.5.0 -> JamesIves/github-pages-deploy-action@v4"
     )
   )
@@ -310,7 +330,11 @@ test_that("setup_dependabot copies dependabot template", {
 
 test_that("setup_agents copies AGENTS template", {
   setup_agents <- getFromNamespace("setup_agents", "bootstrapper")
-  captured <- list(template_file = NULL, destination = NULL)
+  captured <- list(
+    template_file = NULL,
+    destination = NULL,
+    build_ignore = NULL
+  )
 
   testthat::local_mocked_bindings(
     copy_template_file = function(template_file, destination) {
@@ -321,9 +345,52 @@ test_that("setup_agents copies AGENTS template", {
     .package = "bootstrapper"
   )
 
+  testthat::local_mocked_bindings(
+    use_build_ignore = function(path, ...) {
+      captured$build_ignore <<- path
+      NULL
+    },
+    .package = "usethis"
+  )
+
   expect_null(setup_agents())
   expect_identical(captured$template_file, "AGENTS.md")
   expect_identical(captured$destination, "AGENTS.md")
+  expect_identical(captured$build_ignore, "AGENTS.md")
+})
+
+test_that("setup_precommit writes a bash hook and marks it executable", {
+  setup_precommit <- getFromNamespace("setup_precommit", "bootstrapper")
+  captured <- list(template_file = NULL, destination = NULL, chmod = NULL)
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      captured$template_file <<- template_file
+      captured$destination <<- destination
+      NULL
+    },
+    .package = "bootstrapper"
+  )
+
+  testthat::local_mocked_bindings(
+    Sys.chmod = function(paths, mode = "0777", use_umask = TRUE) {
+      captured$chmod <<- list(paths = paths, mode = mode)
+      TRUE
+    },
+    .package = "base"
+  )
+
+  expect_null(setup_precommit())
+  expect_identical(captured$template_file, "pre-commit")
+  expect_identical(
+    captured$destination,
+    fs::path(".git", "hooks", "pre-commit")
+  )
+  expect_identical(
+    captured$chmod$paths,
+    fs::path(".git", "hooks", "pre-commit")
+  )
+  expect_identical(captured$chmod$mode, "0755")
 })
 
 test_that("pkg_setup rethrows a generic message when test setup fails", {

@@ -11,6 +11,7 @@ bootstrapper(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
+  setup_precommit = TRUE,
   ...
 )
 }
@@ -27,6 +28,8 @@ bootstrapper(
 \item{setup_dependabot}{Whether to write a Dependabot configuration.}
 
 \item{setup_AGENTS}{Whether to write a default AGENTS file.}
+
+\item{setup_precommit}{Whether to write a Bash pre-commit hook.}
 
 \item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }

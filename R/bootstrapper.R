@@ -9,6 +9,7 @@
 #' @param setup_gha Whether to configure GitHub Actions setup.
 #' @param setup_dependabot Whether to write a Dependabot configuration.
 #' @param setup_AGENTS Whether to write a default AGENTS file.
+#' @param setup_precommit Whether to write a Bash pre-commit hook.
 #' @param ... Additional arguments passed to [usethis::create_package()].
 #'
 #' @return Invisibly returns `NULL`.
@@ -20,13 +21,15 @@ bootstrapper <- function(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
+  setup_precommit = TRUE,
   ...
 ) {
   create_package(path, fields, private, ...)
   pkg_setup(
     setup_gha = setup_gha,
     setup_dependabot = setup_dependabot,
-    setup_AGENTS = setup_AGENTS
+    setup_AGENTS = setup_AGENTS,
+    setup_precommit = setup_precommit
   )
   invisible(NULL)
 }
@@ -88,13 +91,15 @@ create_package <- function(
 #' @param setup_gha Whether to configure GitHub Actions setup.
 #' @param setup_dependabot Whether to write a Dependabot configuration.
 #' @param setup_AGENTS Whether to write a default AGENTS file.
+#' @param setup_precommit Whether to write a Bash pre-commit hook.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
 pkg_setup <- function(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
-  setup_AGENTS = FALSE
+  setup_AGENTS = FALSE,
+  setup_precommit = TRUE
 ) {
   tryCatch(
     usethis::use_testthat(),
@@ -121,6 +126,9 @@ pkg_setup <- function(
   }
   if (setup_AGENTS) {
     setup_agents()
+  }
+  if (setup_precommit) {
+    setup_precommit()
   }
 
   try_air_jarl_format()
@@ -215,6 +223,19 @@ setup_dependabot <- function() {
 #' @export
 setup_agents <- function() {
   copy_template_file("AGENTS.md", "AGENTS.md")
+  usethis::use_build_ignore("AGENTS.md")
+}
+
+#' Configure Pre-Commit Hook
+#'
+#' Writes a Bash pre-commit hook that runs format and lint checks.
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
+setup_precommit <- function() {
+  copy_template_file("pre-commit", fs::path(".git", "hooks", "pre-commit"))
+  Sys.chmod(fs::path(".git", "hooks", "pre-commit"), mode = "0755")
+  invisible(NULL)
 }
 
 #' Choose and Apply a License

@@ -5,3 +5,4 @@
 ^[.]?air[.]toml$
 ^\.vscode$
 ^LICENSE\.md$
+^AGENTS\.md$
