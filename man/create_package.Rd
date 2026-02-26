@@ -4,20 +4,11 @@
 \alias{create_package}
 \title{Create a Package and Connect GitHub}
 \usage{
-create_package(
-  path = ".",
-  fields = getOption("usethis.description"),
-  private = TRUE,
-  ...
-)
+create_package(fields = getOption("usethis.description"), ...)
 }
 \arguments{
-\item{path}{Path where the package should be created. Defaults to \code{"."}}
-
 \item{fields}{Named list of \code{DESCRIPTION} fields passed to
 \code{\link[usethis:create_package]{usethis::create_package()}}. See \code{\link[usethis:use_description]{usethis::use_description()}}}
-
-\item{private}{Whether to create the GitHub repository as private. Defaults to \code{TRUE}.}
 
 \item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }
@@ -25,6 +16,6 @@ create_package(
 Invisibly returns \code{NULL}.
 }
 \description{
-Create a package, apply \code{.Rbuildignore} cleanup, prompt for a license, and
-connect the package to GitHub.
+Create a package in root, prompts for a license, cleans
+up build ignore file.
 }

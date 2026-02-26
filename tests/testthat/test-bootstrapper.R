@@ -2,11 +2,9 @@ test_that("bootstrapper orchestrates package creation and setup", {
   calls <- character()
 
   testthat::local_mocked_bindings(
-    create_package = function(path, fields, private, ...) {
+    create_package = function(fields, ...) {
       calls <<- c(calls, "create_package")
-      expect_identical(path, "pkg")
       expect_identical(fields, list(name = "value"))
-      expect_false(private)
       expect_identical(list(...), list(open = FALSE))
       NULL
     },
@@ -28,9 +26,7 @@ test_that("bootstrapper orchestrates package creation and setup", {
 
   expect_null(
     bootstrapper::bootstrapper(
-      path = "pkg",
       fields = list(name = "value"),
-      private = FALSE,
       setup_gha = FALSE,
       setup_dependabot = FALSE,
       setup_precommit = FALSE,
@@ -60,10 +56,6 @@ test_that("create_package delegates to usethis and cleans local files", {
       seen$create <<- list(path = path, fields = fields, dots = list(...))
       NULL
     },
-    use_github = function(private) {
-      seen$private <<- private
-      NULL
-    },
     .package = "usethis"
   )
 
@@ -77,19 +69,16 @@ test_that("create_package delegates to usethis and cleans local files", {
 
   expect_null(
     bootstrapper::create_package(
-      path = "pkg",
       fields = fields,
-      private = FALSE,
       open = FALSE
     )
   )
 
-  expect_identical(seen$create$path, "pkg")
+  expect_identical(seen$create$path, ".")
   expect_identical(seen$create$fields, fields)
   expect_identical(seen$create$dots, list(open = FALSE))
   expect_false(file.exists("pkg.Rproj"))
   expect_identical(readLines(".Rbuildignore", warn = FALSE), "keep")
-  expect_false(seen$private)
   expect_true(isTRUE(seen$license))
 })
 
@@ -418,6 +407,43 @@ test_that("setup_precommit writes a bash hook and marks it executable", {
     fs::path(".git", "hooks", "pre-commit")
   )
   expect_identical(captured$chmod$mode, "0755")
+})
+
+test_that("cleanup_buildignore removes Rproj entries and empty lines", {
+  tmp <- tempfile("bootstrapper-buildignore-")
+  dir.create(tmp)
+  old <- setwd(tmp)
+  on.exit(setwd(old), add = TRUE)
+
+  cleanup_buildignore <- getFromNamespace(
+    "cleanup_buildignore",
+    "bootstrapper"
+  )
+
+  writeLines(
+    c("^.*\\.Rproj$", "^\\.Rproj\\.user$", "keep-this", ""),
+    ".Rbuildignore"
+  )
+
+  expect_null(cleanup_buildignore())
+  expect_identical(readLines(".Rbuildignore", warn = FALSE), "keep-this")
+})
+
+test_that("cleanup_buildignore keeps unrelated entries", {
+  tmp <- tempfile("bootstrapper-buildignore-")
+  dir.create(tmp)
+  old <- setwd(tmp)
+  on.exit(setwd(old), add = TRUE)
+
+  cleanup_buildignore <- getFromNamespace(
+    "cleanup_buildignore",
+    "bootstrapper"
+  )
+
+  writeLines(c("foo", "bar", ""), ".Rbuildignore")
+
+  expect_null(cleanup_buildignore())
+  expect_identical(readLines(".Rbuildignore", warn = FALSE), c("foo", "bar"))
 })
 
 test_that("pkg_setup rethrows a generic message when test setup fails", {

@@ -17,16 +17,16 @@ pak::pak("VisruthSK/bootstrapper")
 
 ## Usage
 
-The package is optimized for my usage by default, so calling the main function bare is not advised unless you are me.
+The package is optimized for my usage by default, so calling the main function bare is not advised unless you are me. You should call it in a directory which is already tracked by git and already has GitHub as a remote.
 
 ```r
-bootstrapper:bootstrapper()
+bootstrapper::bootstrapper()
 ```
 
 The main thing to set is the fields option, where you should put your own name, email, etc. instead.
 
 ```r
-bootstrapper:bootstrapper(
+bootstrapper::bootstrapper(
   fields = list(
     "Authors@R" = person(
       "Visruth",

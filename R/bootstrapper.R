@@ -2,10 +2,8 @@
 #'
 #' Create a package with some opinionated setup.
 #'
-#' @param path Path where the package should be created. Defaults to `"."`
 #' @param fields Named list of `DESCRIPTION` fields passed to
 #'   [usethis::create_package()]. See [usethis::use_description()]
-#' @param private Whether to create the GitHub repository as private. Defaults to `TRUE`.
 #' @param setup_gha Whether to configure GitHub Actions setup.
 #' @param setup_dependabot Whether to write a Dependabot configuration.
 #' @param setup_AGENTS Whether to write a default AGENTS file.
@@ -15,7 +13,6 @@
 #' @return Invisibly returns `NULL`.
 #' @export
 bootstrapper <- function(
-  path = ".",
   fields = getOption(
     "usethis.description",
     list(
@@ -29,14 +26,13 @@ bootstrapper <- function(
       )
     )
   ),
-  private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
   ...
 ) {
-  create_package(path, fields, private, ...)
+  create_package(fields, ...)
   pkg_setup(
     setup_gha = setup_gha,
     setup_dependabot = setup_dependabot,
@@ -48,37 +44,20 @@ bootstrapper <- function(
 
 #' Create a Package and Connect GitHub
 #'
-#' Create a package, apply `.Rbuildignore` cleanup, prompt for a license, and
-#' connect the package to GitHub.
+#' Create a package in root, prompts for a license, cleans
+#' up build ignore file.
 #'
 #' @inheritParams bootstrapper
 #' @return Invisibly returns `NULL`.
 #' @export
 create_package <- function(
-  path = ".",
   fields = getOption("usethis.description"),
-  private = TRUE,
   ...
 ) {
-  usethis::create_package(path = path, fields = fields, ...)
+  usethis::create_package(path = ".", fields = fields, ...)
   unlink("*.Rproj")
-  find_replace_in_file(
-    "^\\^.*\\\\\\.Rproj\\$$",
-    "",
-    ".Rbuildignore",
-    fixed = FALSE
-  )
-  find_replace_in_file(
-    "^\\^\\\\\\.Rproj\\\\\\.user\\$$",
-    "",
-    ".Rbuildignore",
-    fixed = FALSE
-  )
-  readLines(".Rbuildignore", warn = FALSE) |>
-    Filter(nzchar, x = _) |>
-    writeLines(".Rbuildignore")
   use_license()
-  usethis::use_github(private = private)
+  cleanup_buildignore()
   invisible(NULL)
 }
 
@@ -118,6 +97,7 @@ pkg_setup <- function(
     fs::path("NEWS.md")
   )
 
+  # flags
   if (setup_gha) {
     setup_gha()
   }
@@ -131,8 +111,11 @@ pkg_setup <- function(
     setup_precommit()
   }
 
+  # cleanup
   try_air_jarl_format()
   usethis::use_tidy_description()
+  cleanup_buildignore()
+
   invisible(NULL)
 }
 
@@ -246,6 +229,36 @@ setup_agents <- function() {
 setup_precommit <- function() {
   copy_template_file("pre-commit", fs::path(".git", "hooks", "pre-commit"))
   Sys.chmod(fs::path(".git", "hooks", "pre-commit"), mode = "0755")
+  invisible(NULL)
+}
+
+#' Remove RStudio Project Ignore Entries
+#'
+#' Removes default RStudio project ignore patterns from `.Rbuildignore` and
+#' drops empty lines.
+#'
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+cleanup_buildignore <- function() {
+  if (!file.exists(".Rbuildignore")) {
+    return(invisible(NULL))
+  }
+  find_replace_in_file(
+    "^\\^.*\\\\\\.Rproj\\$$",
+    "",
+    ".Rbuildignore",
+    fixed = FALSE
+  )
+  find_replace_in_file(
+    "^\\^\\\\\\.Rproj\\\\\\.user\\$$",
+    "",
+    ".Rbuildignore",
+    fixed = FALSE
+  )
+  readLines(".Rbuildignore", warn = FALSE) |>
+    Filter(nzchar, x = _) |>
+    writeLines(".Rbuildignore")
   invisible(NULL)
 }
 

@@ -5,11 +5,9 @@
 \title{Bootstrap a New R Package}
 \usage{
 bootstrapper(
-  path = ".",
   fields = getOption("usethis.description", list(`Authors@R` = person("Visruth",
     "Srimath Kandali", , "public@visruth.com", role = c("aut", "cre", "cph"), comment =
     c(ORCID = "0009-0005-9097-0688")))),
-  private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
@@ -18,12 +16,8 @@ bootstrapper(
 )
 }
 \arguments{
-\item{path}{Path where the package should be created. Defaults to \code{"."}}
-
 \item{fields}{Named list of \code{DESCRIPTION} fields passed to
 \code{\link[usethis:create_package]{usethis::create_package()}}. See \code{\link[usethis:use_description]{usethis::use_description()}}}
-
-\item{private}{Whether to create the GitHub repository as private. Defaults to \code{TRUE}.}
 
 \item{setup_gha}{Whether to configure GitHub Actions setup.}
 
