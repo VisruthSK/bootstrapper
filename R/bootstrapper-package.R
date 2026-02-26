@@ -2,6 +2,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom spelling update_wordlist
 #' @importFrom utils person
 ## usethis namespace: end
 

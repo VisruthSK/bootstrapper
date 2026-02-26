@@ -115,6 +115,7 @@ pkg_setup <- function(
   try_air_jarl_format()
   usethis::use_tidy_description()
   cleanup_buildignore()
+  spelling::update_wordlist(confirm = FALSE)
 
   invisible(NULL)
 }
