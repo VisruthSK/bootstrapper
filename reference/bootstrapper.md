@@ -12,6 +12,7 @@ bootstrapper(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
+  setup_precommit = TRUE,
   ...
 )
 ```
@@ -45,6 +46,10 @@ bootstrapper(
 - setup_AGENTS:
 
   Whether to write a default AGENTS file.
+
+- setup_precommit:
+
+  Whether to write a Bash pre-commit hook.
 
 - ...:
 

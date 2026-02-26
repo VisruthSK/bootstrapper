@@ -7,7 +7,12 @@ defaults. Run this in the root directory of your package.
 ## Usage
 
 ``` r
-pkg_setup(setup_gha = TRUE, setup_dependabot = TRUE, setup_AGENTS = FALSE)
+pkg_setup(
+  setup_gha = TRUE,
+  setup_dependabot = TRUE,
+  setup_AGENTS = FALSE,
+  setup_precommit = TRUE
+)
 ```
 
 ## Arguments
@@ -23,6 +28,10 @@ pkg_setup(setup_gha = TRUE, setup_dependabot = TRUE, setup_AGENTS = FALSE)
 - setup_AGENTS:
 
   Whether to write a default AGENTS file.
+
+- setup_precommit:
+
+  Whether to write a Bash pre-commit hook.
 
 ## Value
 

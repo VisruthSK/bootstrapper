@@ -14,5 +14,7 @@
   : Configure Dependabot Defaults
 - [`setup_gha()`](https://visruthsk.github.io/bootstrapper/reference/setup_gha.md)
   : Configure GitHub Actions Defaults
+- [`setup_precommit()`](https://visruthsk.github.io/bootstrapper/reference/setup_precommit.md)
+  : Configure Pre-Commit Hook
 - [`use_license()`](https://visruthsk.github.io/bootstrapper/reference/use_license.md)
   : Choose and Apply a License

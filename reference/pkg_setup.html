@@ -44,7 +44,12 @@ Run this in the root directory of your package.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">pkg_setup</span><span class="op">(</span>setup_gha <span class="op">=</span> <span class="cn">TRUE</span>, setup_dependabot <span class="op">=</span> <span class="cn">TRUE</span>, setup_AGENTS <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">pkg_setup</span><span class="op">(</span></span>
+<span>  setup_gha <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  setup_dependabot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  setup_AGENTS <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  setup_precommit <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -61,6 +66,10 @@ Run this in the root directory of your package.</p>
 
 <dt id="arg-setup-agents">setup_AGENTS<a class="anchor" aria-label="anchor" href="#arg-setup-agents"></a></dt>
 <dd><p>Whether to write a default AGENTS file.</p></dd>
+
+
+<dt id="arg-setup-precommit">setup_precommit<a class="anchor" aria-label="anchor" href="#arg-setup-precommit"></a></dt>
+<dd><p>Whether to write a Bash pre-commit hook.</p></dd>
 
 </dl></div>
     <div class="section level2">
