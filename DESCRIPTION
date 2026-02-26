@@ -9,7 +9,7 @@ Description: Bootstrap new R packages with strongly opinionated defaults.
     configures GitHub Actions and Dependabot, adds Air/Jarl setup, and
     drop in a default AGENTS.md for building R packages.
 License: GPL (>= 3)
-URL: https://visruthsk.github.io/bootstrapper/
+URL: https://bootstrapper.visruth.com/
 Depends: 
     R (>= 4.2.0)
 Imports: 

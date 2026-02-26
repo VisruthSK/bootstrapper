@@ -10,7 +10,7 @@ Bootstrap new R packages with strongly opinionated defaults. Creates the package
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://visruthsk.github.io/bootstrapper/}
+  \item \url{https://bootstrapper.visruth.com/}
 }
 
 }
