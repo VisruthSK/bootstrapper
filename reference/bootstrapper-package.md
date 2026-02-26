@@ -9,7 +9,7 @@ AGENTS.md for building R packages.
 
 Useful links:
 
-- <https://visruthsk.github.io/bootstrapper/>
+- <https://bootstrapper.visruth.com/>
 
 ## Author
 
