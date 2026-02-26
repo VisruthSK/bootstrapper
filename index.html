@@ -50,57 +50,36 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of bootstrapper is to …</p>
+<p>The goal of bootstrapper is to quickly setup a modern R package with appropriate actions and assorted setup. Mostly for my own usage, pretty opinionated.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>You can install the development version of bootstrapper like so:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"VisruthSK/bootstrapper"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
+<p>The package is optimized for my usage by default, so calling the main function bare is not advised unless you are me.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://visruthsk.github.io/bootstrapper/">bootstrapper</a></span><span class="op">)</span></span>
-<span><span class="co">## basic example code</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="implement-this-workflow">IMPLEMENT THIS WORKFLOW:<a class="anchor" aria-label="anchor" href="#implement-this-workflow"></a>
-</h2>
+<code class="sourceCode R"><span><span class="va">bootstrapper</span><span class="op">:</span><span class="fu"><a href="reference/bootstrapper.html">bootstrapper</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>The main thing to set is the fields option, where you should put your own name, email, etc. instead.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/create_package.html" class="external-link">create_package</a></span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span>
-<span><span class="co"># publish repo to GitHub</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_readme_rmd.html" class="external-link">use_readme_md</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="st">"*.Rproj"</span><span class="op">)</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_testthat.html" class="external-link">use_testthat</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># GitHub Actions Setup</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_github_action.html" class="external-link">use_github_action</a></span><span class="op">(</span><span class="st">"check-standard"</span>, badge <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_github_action.html" class="external-link">use_github_action</a></span><span class="op">(</span><span class="st">"test-coverage"</span>, badge <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_github_action.html" class="external-link">use_github_action</a></span><span class="op">(</span></span>
-<span>  url <span class="op">=</span> <span class="st">"https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_pkgdown.html" class="external-link">use_pkgdown_github_pages</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"version: 2"</span>,</span>
-<span>  <span class="st">"updates:"</span>,</span>
-<span>  <span class="st">"  - package-ecosystem: \"github-actions\""</span>,</span>
-<span>  <span class="st">"    directory: \"/\""</span>,</span>
-<span>  <span class="st">"    schedule:"</span>,</span>
-<span>  <span class="st">"      interval: \"weekly\""</span></span>
-<span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">write_to_path</span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="st">".github"</span>, <span class="st">"dependabot.yml"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">find_replace_in_dir</span><span class="op">(</span><span class="st">"actions/checkout@v4"</span>, <span class="st">"actions/checkout@v6"</span><span class="op">)</span></span>
-<span><span class="fu">find_replace_in_dir</span><span class="op">(</span></span>
-<span>  <span class="st">"JamesIves/github-pages-deploy-action@v4.5.0"</span>,</span>
-<span>  <span class="st">"JamesIves/github-pages-deploy-action@v4"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/tidyverse.html" class="external-link">use_tidy_description</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co"># pick a license</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">bootstrapper</span><span class="op">:</span><span class="fu"><a href="reference/bootstrapper.html">bootstrapper</a></span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Authors@R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/person.html" class="external-link">person</a></span><span class="op">(</span></span>
+<span>      <span class="st">"Visruth"</span>,</span>
+<span>      <span class="st">"Srimath Kandali"</span>,</span>
+<span>      ,</span>
+<span>      <span class="st">"public@visruth.com"</span>,</span>
+<span>      role <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"aut"</span>, <span class="st">"cre"</span>, <span class="st">"cph"</span><span class="op">)</span>,</span>
+<span>      comment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>ORCID <span class="op">=</span> <span class="st">"0009-0005-9097-0688"</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>There are some flags you can set to flip on/off certain features like publishing the repository as private/public on GitHub, copying over some GitHub Actions, using Dependabot for GHA, an <code>AGENTS.md</code> file, and a precommit hook for <code>air</code> and <code>jarl</code> formatting.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
@@ -131,7 +110,6 @@
 <ul class="list-unstyled">
 <li><a href="https://github.com/VisruthSK/bootstrapper/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/VisruthSK/bootstrapper/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://app.codecov.io/gh/VisruthSK/bootstrapper" class="external-link"><img src="https://codecov.io/gh/VisruthSK/bootstrapper/graph/badge.svg" alt="Codecov test coverage"></a></li>
-<li><a href="https://github.com/VisruthSK/bootstrapper/actions/workflows/test-coverage.yaml" class="external-link"><img src="https://github.com/VisruthSK/bootstrapper/actions/workflows/test-coverage.yaml/badge.svg" alt="test-coverage"></a></li>
 </ul>
 </div>
 
