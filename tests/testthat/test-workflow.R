@@ -1,4 +1,4 @@
-test_that("bootstrapper end-to-end workflow creates expected repo files", {
+run_workflow_fixture <- function(setup_AGENTS = TRUE) {
   tmp <- tempfile("bootstrapper-workflow-")
   dir.create(tmp)
   old <- setwd(tmp)
@@ -6,8 +6,9 @@ test_that("bootstrapper end-to-end workflow creates expected repo files", {
 
   pkg <- "demoPkg"
   fields <- list("Package" = pkg)
-  github_private <- NULL
-  action_calls <- list()
+  state <- new.env(parent = emptyenv())
+  state$github_private <- NULL
+  state$action_calls <- list()
 
   testthat::local_mocked_bindings(
     create_package = function(path, fields, ...) {
@@ -27,7 +28,7 @@ test_that("bootstrapper end-to-end workflow creates expected repo files", {
       NULL
     },
     use_github = function(private) {
-      github_private <<- private
+      state$github_private <- private
       writeLines(
         c(
           "[remote \"origin\"]",
@@ -57,7 +58,7 @@ test_that("bootstrapper end-to-end workflow creates expected repo files", {
     },
     use_github_action = function(...) {
       args <- list(...)
-      action_calls <<- c(action_calls, list(args))
+      state$action_calls <- c(state$action_calls, list(args))
       fs::dir_create(fs::path(".github", "workflows"))
 
       if (!is.null(args$url)) {
@@ -137,45 +138,64 @@ test_that("bootstrapper end-to-end workflow creates expected repo files", {
       path = pkg,
       fields = fields,
       private = TRUE,
-      setup_AGENTS = TRUE,
+      setup_AGENTS = setup_AGENTS,
       open = FALSE
     )
   )
 
-  expect_identical(basename(getwd()), pkg)
-  expect_true(isTRUE(github_private))
-  expect_length(action_calls, 3)
-  expect_false(file.exists("demoPkg.Rproj"))
-
-  expected_files <- c(
-    "DESCRIPTION",
-    "README.md",
-    "NEWS.md",
-    "LICENSE.md",
-    fs::path("tests", "testthat.R"),
-    fs::path("tests", "jarl.toml"),
-    fs::path(".vscode", "extensions.json"),
-    fs::path(".github", "dependabot.yml"),
-    fs::path(".github", "workflows", "check-standard.yaml"),
-    fs::path(".github", "workflows", "test-coverage.yaml"),
-    fs::path(".github", "workflows", "format-suggest.yaml"),
-    "AGENTS.md",
-    fs::path(".git", "config"),
-    fs::path(".git", "hooks", "pre-commit")
+  list(
+    pkg_path = fs::path(tmp, pkg),
+    github_private = state$github_private,
+    action_calls = state$action_calls
   )
-  for (f in expected_files) {
+}
+
+file_in_pkg <- function(fixture, ...) {
+  fs::path(fixture$pkg_path, ...)
+}
+
+test_that("workflow step: create_package creates git-backed package skeleton", {
+  fixture <- run_workflow_fixture()
+
+  expect_true(isTRUE(fixture$github_private))
+  expect_true(file.exists(file_in_pkg(fixture, "DESCRIPTION")))
+  expect_true(file.exists(file_in_pkg(fixture, "LICENSE.md")))
+  expect_true(file.exists(file_in_pkg(fixture, ".git", "config")))
+  expect_false(file.exists(file_in_pkg(fixture, "demoPkg.Rproj")))
+
+  rbuildignore <- readLines(file_in_pkg(fixture, ".Rbuildignore"), warn = FALSE)
+  expect_false(any(grepl("\\.Rproj", rbuildignore)))
+})
+
+test_that("workflow step: pkg_setup creates core package files", {
+  fixture <- run_workflow_fixture()
+
+  expected_core_files <- c(
+    file_in_pkg(fixture, "README.md"),
+    file_in_pkg(fixture, "NEWS.md"),
+    file_in_pkg(fixture, "tests", "testthat.R")
+  )
+  for (f in expected_core_files) {
     expect_true(file.exists(f), info = f)
   }
 
-  rbuildignore <- readLines(".Rbuildignore", warn = FALSE)
-  expect_false(any(grepl("\\.Rproj", rbuildignore)))
-  expect_true("AGENTS.md" %in% rbuildignore)
-
-  news <- readLines("NEWS.md", warn = FALSE)
+  news <- readLines(file_in_pkg(fixture, "NEWS.md"), warn = FALSE)
   expect_true(any(grepl("0.0.0.9000", news, fixed = TRUE)))
+})
+
+test_that("workflow step: setup_gha writes and rewrites workflow files", {
+  fixture <- run_workflow_fixture()
+
+  expect_length(fixture$action_calls, 3)
+  expect_identical(fixture$action_calls[[1]][[1]], "check-standard")
+  expect_identical(fixture$action_calls[[2]][[1]], "test-coverage")
+  expect_identical(
+    fixture$action_calls[[3]]$url,
+    "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
+  )
 
   check_standard <- readLines(
-    fs::path(".github", "workflows", "check-standard.yaml"),
+    file_in_pkg(fixture, ".github", "workflows", "check-standard.yaml"),
     warn = FALSE
   )
   expect_true(any(grepl("actions/checkout@v6", check_standard, fixed = TRUE)))
@@ -191,46 +211,56 @@ test_that("bootstrapper end-to-end workflow creates expected repo files", {
   )))
 
   coverage <- readLines(
-    fs::path(".github", "workflows", "test-coverage.yaml"),
+    file_in_pkg(fixture, ".github", "workflows", "test-coverage.yaml"),
     warn = FALSE
   )
   expect_true(any(grepl("use_oidc: true", coverage, fixed = TRUE)))
   expect_true(any(grepl("id-token: write", coverage, fixed = TRUE)))
   expect_false(any(grepl("CODECOV_TOKEN", coverage, fixed = TRUE)))
+})
+
+test_that("workflow step: setup templates are copied to expected locations", {
+  fixture <- run_workflow_fixture(setup_AGENTS = TRUE)
 
   expect_identical(
-    readLines(fs::path(".github", "dependabot.yml"), warn = FALSE),
+    readLines(file_in_pkg(fixture, ".github", "dependabot.yml"), warn = FALSE),
     readLines(
       fs::path_package("bootstrapper", "templates", "dependabot.yml"),
       warn = FALSE
     )
   )
   expect_identical(
-    readLines("AGENTS.md", warn = FALSE),
+    readLines(file_in_pkg(fixture, "AGENTS.md"), warn = FALSE),
     readLines(
       fs::path_package("bootstrapper", "templates", "AGENTS.md"),
       warn = FALSE
     )
   )
   expect_identical(
-    readLines(fs::path("tests", "jarl.toml"), warn = FALSE),
+    readLines(file_in_pkg(fixture, "tests", "jarl.toml"), warn = FALSE),
     readLines(
       fs::path_package("bootstrapper", "templates", "jarl.toml"),
       warn = FALSE
     )
   )
   expect_identical(
-    readLines(fs::path(".vscode", "extensions.json"), warn = FALSE),
+    readLines(file_in_pkg(fixture, ".vscode", "extensions.json"), warn = FALSE),
     readLines(
       fs::path_package("bootstrapper", "templates", "extensions.json"),
       warn = FALSE
     )
   )
   expect_identical(
-    readLines(fs::path(".git", "hooks", "pre-commit"), warn = FALSE),
+    readLines(
+      file_in_pkg(fixture, ".git", "hooks", "pre-commit"),
+      warn = FALSE
+    ),
     readLines(
       fs::path_package("bootstrapper", "templates", "pre-commit"),
       warn = FALSE
     )
   )
+
+  rbuildignore <- readLines(file_in_pkg(fixture, ".Rbuildignore"), warn = FALSE)
+  expect_true("AGENTS.md" %in% rbuildignore)
 })
