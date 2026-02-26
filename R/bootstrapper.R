@@ -6,6 +6,9 @@
 #' @param fields Named list of `DESCRIPTION` fields passed to
 #'   [usethis::create_package()]. See [usethis::use_description()]
 #' @param private Whether to create the GitHub repository as private. Defaults to `TRUE`.
+#' @param setup_gha Whether to configure GitHub Actions setup.
+#' @param setup_dependabot Whether to write a Dependabot configuration.
+#' @param setup_air_jarl Whether to configure Air and Jarl defaults.
 #' @param ... Additional arguments passed to [usethis::create_package()].
 #'
 #' @return Invisibly returns `NULL`.
@@ -14,10 +17,17 @@ bootstrapper <- function(
   path = ".",
   fields,
   private = TRUE,
+  setup_gha = TRUE,
+  setup_dependabot = TRUE,
+  setup_air_jarl = TRUE,
   ...
 ) {
   create_package(path, fields, private, ...)
-  pkg_setup()
+  pkg_setup(
+    setup_gha = setup_gha,
+    setup_dependabot = setup_dependabot,
+    setup_air_jarl = setup_air_jarl
+  )
   invisible(NULL)
 }
 
@@ -73,15 +83,24 @@ create_package <- function(
 #'
 #' Run the package setup steps used by `bootstrapper`, including test
 #' infrastructure, README/NEWS creation, GitHub Actions, and linting defaults.
+#' Run this in the root directory of your package.
+#'
+#' @param setup_gha Whether to configure GitHub Actions setup.
+#' @param setup_dependabot Whether to write a Dependabot configuration.
+#' @param setup_air_jarl Whether to configure Air and Jarl defaults.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
-pkg_setup <- function() {
+pkg_setup <- function(
+  setup_gha = TRUE,
+  setup_dependabot = TRUE,
+  setup_air_jarl = TRUE
+) {
   tryCatch(
     usethis::use_testthat(),
     error = function(...) {
       usethis::ui_stop(
-        "This doesn't appear to be a package. Ensure you are in the right directory, or run {usethis::ui_code('create_package()')}."
+        "This doesn't appear to be a package. Ensure you are in the right directory, or run {usethis::ui_code('create_package()')} in this directory to start a R package."
       )
     }
   )
@@ -94,7 +113,31 @@ pkg_setup <- function() {
     fs::path("NEWS.md")
   )
 
-  # GitHub Actions setup
+  if (setup_gha) {
+    configure_gha()
+  }
+  if (setup_dependabot) {
+    configure_dependabot()
+  }
+  if (setup_air_jarl) {
+    configure_air_jarl()
+  }
+
+  usethis::use_tidy_description()
+  invisible(NULL)
+}
+
+# Helpers ---------------------------------------------------------------------
+
+#' Configure GitHub Actions Defaults
+#'
+#' Sets up standard GitHub Actions used by this package template and updates
+#' workflow references.
+#'
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+configure_gha <- function() {
   usethis::use_github_action("check-standard", badge = TRUE)
   usethis::use_github_action("test-coverage", badge = TRUE)
   usethis::use_github_action(
@@ -103,7 +146,22 @@ pkg_setup <- function() {
   usethis::use_pkgdown_github_pages()
   usethis::use_spell_check(error = TRUE)
 
-  # Dependabot
+  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
+  find_replace_in_gha(
+    "JamesIves/github-pages-deploy-action@v4.5.0",
+    "JamesIves/github-pages-deploy-action@v4"
+  )
+  invisible(NULL)
+}
+
+#' Configure Dependabot Defaults
+#'
+#' Writes a default Dependabot configuration for GitHub Actions.
+#'
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+configure_dependabot <- function() {
   c(
     "version: 2",
     "updates:",
@@ -113,8 +171,17 @@ pkg_setup <- function() {
     "      interval: \"weekly\""
   ) |> # TODO: move file to inst?
     write_to_path(fs::path(".github", "dependabot.yml"))
+  invisible(NULL)
+}
 
-  # Air and Jarl configs
+#' Configure Air and Jarl Defaults
+#'
+#' Sets up Air, VS Code extension recommendations, and Jarl lint defaults.
+#'
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+configure_air_jarl <- function() {
   usethis::use_air()
   c(
     "{",
@@ -130,18 +197,8 @@ pkg_setup <- function() {
     "extend-select = [\"TESTTHAT\"]"
   ) |>
     write_to_path(fs::path("tests", "jarl.toml")) # TODO: need to make GHA jarl runs respect this
-
-  # Cleanup
-  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
-  find_replace_in_gha(
-    "JamesIves/github-pages-deploy-action@v4.5.0",
-    "JamesIves/github-pages-deploy-action@v4"
-  )
-  usethis::use_tidy_description()
   invisible(NULL)
 }
-
-# Helpers ---------------------------------------------------------------------
 
 #' Choose and Apply a License
 #'
@@ -166,7 +223,7 @@ use_license <- function() {
     "Skip for now" = FALSE
   )
   usethis::ui_info("Select a license for this package.")
-  selected_fn <- if (interactive()) {
+  selected_fn <- if (is_interactive()) {
     unname(
       license_choices[[utils::menu(
         choices = names(license_choices),

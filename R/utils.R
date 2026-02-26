@@ -79,3 +79,14 @@ find_replace_in_gha <- function(from, to) {
     pattern = "\\.ya?ml$"
   )
 }
+
+#' Determine Interactive Mode
+#'
+#' Wrapper around [base::interactive()] to make interactive branches testable.
+#'
+#' @return A single logical value.
+#' @keywords internal
+#' @noRd
+is_interactive <- function() {
+  interactive()
+}

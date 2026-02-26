@@ -4,7 +4,14 @@
 \alias{pkg_setup}
 \title{Apply Opinionated Package Setup}
 \usage{
-pkg_setup()
+pkg_setup(setup_gha = TRUE, setup_dependabot = TRUE, setup_air_jarl = TRUE)
+}
+\arguments{
+\item{setup_gha}{Whether to configure GitHub Actions setup.}
+
+\item{setup_dependabot}{Whether to write a Dependabot configuration.}
+
+\item{setup_air_jarl}{Whether to configure Air and Jarl defaults.}
 }
 \value{
 Invisibly returns \code{NULL}.
@@ -12,4 +19,5 @@ Invisibly returns \code{NULL}.
 \description{
 Run the package setup steps used by \code{bootstrapper}, including test
 infrastructure, README/NEWS creation, GitHub Actions, and linting defaults.
+Run this in the root directory of your package.
 }

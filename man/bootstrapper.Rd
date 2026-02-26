@@ -4,7 +4,15 @@
 \alias{bootstrapper}
 \title{Bootstrap a New R Package}
 \usage{
-bootstrapper(path = ".", fields, private = TRUE, ...)
+bootstrapper(
+  path = ".",
+  fields,
+  private = TRUE,
+  setup_gha = TRUE,
+  setup_dependabot = TRUE,
+  setup_air_jarl = TRUE,
+  ...
+)
 }
 \arguments{
 \item{path}{Path where the package should be created. Defaults to \code{"."}}
@@ -13,6 +21,12 @@ bootstrapper(path = ".", fields, private = TRUE, ...)
 \code{\link[usethis:create_package]{usethis::create_package()}}. See \code{\link[usethis:use_description]{usethis::use_description()}}}
 
 \item{private}{Whether to create the GitHub repository as private. Defaults to \code{TRUE}.}
+
+\item{setup_gha}{Whether to configure GitHub Actions setup.}
+
+\item{setup_dependabot}{Whether to write a Dependabot configuration.}
+
+\item{setup_air_jarl}{Whether to configure Air and Jarl defaults.}
 
 \item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }
