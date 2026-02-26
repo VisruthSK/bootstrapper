@@ -115,11 +115,48 @@ pkg_setup <- function(
     configure_dependabot()
   }
 
+  try_air_jarl_format()
   usethis::use_tidy_description()
   invisible(NULL)
 }
 
 # Helpers ---------------------------------------------------------------------
+
+#' Try Air/Jarl Formatting
+#'
+#' Attempts to run `air format .` and `jarl check . --fix --allow-dirty`.
+#' Errors and warnings are ignored so setup can continue if tools are unavailable.
+#'
+#' @return Invisibly returns a named logical vector indicating whether each
+#'   check succeeded.
+#' @keywords internal
+#' @noRd
+try_air_jarl_format <- function() {
+  air <- suppressWarnings(
+    tryCatch(
+      {
+        system2("air", c("format", "."), stdout = FALSE, stderr = FALSE)
+        TRUE
+      },
+      error = function(...) FALSE
+    )
+  )
+  jarl <- suppressWarnings(
+    tryCatch(
+      {
+        system2(
+          "jarl",
+          c("check", ".", "--fix", "--allow-dirty"),
+          stdout = FALSE,
+          stderr = FALSE
+        )
+        TRUE
+      },
+      error = function(...) FALSE
+    )
+  )
+  invisible(c(air = air, jarl = jarl))
+}
 
 #' Configure GitHub Actions Defaults
 #'

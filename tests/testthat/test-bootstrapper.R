@@ -86,7 +86,12 @@ test_that("create_package delegates to usethis and cleans local files", {
 })
 
 test_that("pkg_setup runs expected top-level calls and setup sections", {
-  calls <- list(actions = character(), sections = character(), replaced = FALSE)
+  calls <- list(
+    actions = character(),
+    sections = character(),
+    replaced = FALSE,
+    formatted = FALSE
+  )
 
   testthat::local_mocked_bindings(
     use_testthat = function() {
@@ -121,6 +126,10 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
       expect_true(fixed)
       NULL
     },
+    try_air_jarl_format = function() {
+      calls$formatted <<- TRUE
+      NULL
+    },
     .package = "bootstrapper"
   )
 
@@ -132,10 +141,12 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
   expect_true("tidy_description" %in% calls$actions)
   expect_identical(calls$sections, c("gha", "dependabot"))
   expect_true(calls$replaced)
+  expect_true(calls$formatted)
 })
 
 test_that("pkg_setup skips optional sections when disabled", {
   called <- FALSE
+  formatted <- FALSE
 
   testthat::local_mocked_bindings(
     use_testthat = function() NULL,
@@ -155,6 +166,10 @@ test_that("pkg_setup skips optional sections when disabled", {
       NULL
     },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
+    try_air_jarl_format = function() {
+      formatted <<- TRUE
+      NULL
+    },
     .package = "bootstrapper"
   )
 
@@ -165,6 +180,7 @@ test_that("pkg_setup skips optional sections when disabled", {
     )
   )
   expect_false(called)
+  expect_true(formatted)
 })
 
 test_that("configure_gha runs expected usethis, replacement, and air/jarl calls", {
