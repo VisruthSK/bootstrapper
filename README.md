@@ -12,7 +12,6 @@ The goal of bootstrapper is to quickly setup a modern R package with appropriate
 You can install the development version of bootstrapper like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
 pak::pak("VisruthSK/bootstrapper")
 ```
 
