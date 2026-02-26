@@ -3,10 +3,9 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/VisruthSK/bootstrapper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/VisruthSK/bootstrapper/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/VisruthSK/bootstrapper/graph/badge.svg)](https://app.codecov.io/gh/VisruthSK/bootstrapper)
-[![test-coverage](https://github.com/VisruthSK/bootstrapper/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/VisruthSK/bootstrapper/actions/workflows/test-coverage.yaml)
 <!-- badges: end -->
 
-The goal of bootstrapper is to ...
+The goal of bootstrapper is to quickly setup a modern R package with appropriate actions and assorted setup. Mostly for my own usage, pretty opinionated.
 
 ## Installation
 
@@ -14,49 +13,32 @@ You can install the development version of bootstrapper like so:
 
 ``` r
 # FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+pak::pak("VisruthSK/bootstrapper")
 ```
 
-## Example
+## Usage
 
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(bootstrapper)
-## basic example code
-```
-
-## IMPLEMENT THIS WORKFLOW:
+The package is optimized for my usage by default, so calling the main function bare is not advised unless you are me.
 
 ```r
-usethis::create_package(".")
-# publish repo to GitHub
-usethis::use_readme_md()
-unlink("*.Rproj")
-usethis::use_testthat()
-
-# GitHub Actions Setup
-usethis::use_github_action("check-standard", badge = TRUE)
-usethis::use_github_action("test-coverage", badge = TRUE)
-usethis::use_github_action(
-  url = "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
-)
-usethis::use_pkgdown_github_pages()
-c(
-  "version: 2",
-  "updates:",
-  "  - package-ecosystem: \"github-actions\"",
-  "    directory: \"/\"",
-  "    schedule:",
-  "      interval: \"weekly\""
-) |>
-  write_to_path(fs::path(".github", "dependabot.yml"))
-
-find_replace_in_dir("actions/checkout@v4", "actions/checkout@v6")
-find_replace_in_dir(
-  "JamesIves/github-pages-deploy-action@v4.5.0",
-  "JamesIves/github-pages-deploy-action@v4"
-)
-
-usethis::use_tidy_description()
-# pick a license
+bootstrapper:bootstrapper()
 ```
+
+The main thing to set is the fields option, where you should put your own name, email, etc. instead.
+
+```r
+bootstrapper:bootstrapper(
+  fields = list(
+    "Authors@R" = person(
+      "Visruth",
+      "Srimath Kandali",
+      ,
+      "public@visruth.com",
+      role = c("aut", "cre", "cph"),
+      comment = c(ORCID = "0009-0005-9097-0688")
+    )
+  )
+)
+```
+
+There are some flags you can set to flip on/off certain features like publishing the repository as private/public on GitHub, copying over some GitHub Actions, using Dependabot for GHA, an `AGENTS.md` file, and a precommit hook for `air` and `jarl` formatting. 

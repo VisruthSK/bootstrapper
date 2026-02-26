@@ -16,7 +16,19 @@
 #' @export
 bootstrapper <- function(
   path = ".",
-  fields,
+  fields = getOption(
+    "usethis.description",
+    list(
+      "Authors@R" = person(
+        "Visruth",
+        "Srimath Kandali",
+        ,
+        "public@visruth.com",
+        role = c("aut", "cre", "cph"),
+        comment = c(ORCID = "0009-0005-9097-0688")
+      )
+    )
+  ),
   private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
@@ -44,19 +56,7 @@ bootstrapper <- function(
 #' @export
 create_package <- function(
   path = ".",
-  fields = getOption(
-    "usethis.description",
-    list(
-      "Authors@R" = person(
-        "Visruth",
-        "Srimath Kandali",
-        ,
-        "public@visruth.com",
-        role = c("aut", "cre", "cph"),
-        comment = c(ORCID = "0009-0005-9097-0688")
-      )
-    )
-  ),
+  fields = getOption("usethis.description"),
   private = TRUE,
   ...
 ) {
@@ -183,7 +183,7 @@ try_air_jarl_format <- function() {
 #' @export
 setup_gha <- function() {
   usethis::use_github_action("check-standard", badge = TRUE)
-  usethis::use_github_action("test-coverage", badge = TRUE)
+  usethis::use_github_action("test-coverage")
   usethis::use_github_action(
     url = "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
   )

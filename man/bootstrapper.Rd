@@ -6,7 +6,9 @@
 \usage{
 bootstrapper(
   path = ".",
-  fields,
+  fields = getOption("usethis.description", list(`Authors@R` = person("Visruth",
+    "Srimath Kandali", , "public@visruth.com", role = c("aut", "cre", "cph"), comment =
+    c(ORCID = "0009-0005-9097-0688")))),
   private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
