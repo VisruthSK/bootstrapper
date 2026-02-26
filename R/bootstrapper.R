@@ -1,3 +1,15 @@
+#' Bootstrap a New R Package
+#'
+#' Create a package with some opinionated setup.
+#'
+#' @param path Path where the package should be created. Defaults to `"."`
+#' @param fields Named list of `DESCRIPTION` fields passed to
+#'   [usethis::create_package()]. See [usethis::use_description()]
+#' @param private Whether to create the GitHub repository as private. Defaults to `TRUE`.
+#' @param ... Additional arguments passed to [usethis::create_package()].
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
 bootstrapper <- function(
   path = ".",
   fields,
@@ -9,6 +21,14 @@ bootstrapper <- function(
   invisible(NULL)
 }
 
+#' Create a Package and Connect GitHub
+#'
+#' Create a package, apply `.Rbuildignore` cleanup, prompt for a license, and
+#' connect the package to GitHub.
+#'
+#' @inheritParams bootstrapper
+#' @return Invisibly returns `NULL`.
+#' @export
 create_package <- function(
   path = ".",
   fields = getOption(
@@ -49,6 +69,13 @@ create_package <- function(
   invisible(NULL)
 }
 
+#' Apply Opinionated Package Setup
+#'
+#' Run the package setup steps used by `bootstrapper`, including test
+#' infrastructure, README/NEWS creation, GitHub Actions, and linting defaults.
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
 pkg_setup <- function() {
   tryCatch(
     usethis::use_testthat(),
@@ -110,6 +137,16 @@ pkg_setup <- function() {
 
 # Helpers ---------------------------------------------------------------------
 
+#' Choose and Apply a License
+#'
+#' Prompts for a license choice in interactive sessions and applies the selected
+#' `usethis` license helper.
+#'
+#' @param author A [utils::person()] object used when the selected license
+#'   requires a copyright holder.
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
 use_license <- function(author) {
   license_choices <- c(
     "MIT" = "use_mit_license",
