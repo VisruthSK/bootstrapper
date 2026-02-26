@@ -10,11 +10,10 @@ test_that("bootstrapper orchestrates package creation and setup", {
       expect_identical(list(...), list(open = FALSE))
       NULL
     },
-    pkg_setup = function(setup_gha, setup_dependabot, setup_air_jarl) {
+    pkg_setup = function(setup_gha, setup_dependabot) {
       calls <<- c(calls, "pkg_setup")
       expect_false(setup_gha)
       expect_false(setup_dependabot)
-      expect_true(setup_air_jarl)
       NULL
     },
     .package = "bootstrapper"
@@ -27,7 +26,6 @@ test_that("bootstrapper orchestrates package creation and setup", {
       private = FALSE,
       setup_gha = FALSE,
       setup_dependabot = FALSE,
-      setup_air_jarl = TRUE,
       open = FALSE
     )
   )
@@ -115,10 +113,6 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
       calls$sections <<- c(calls$sections, "dependabot")
       NULL
     },
-    configure_air_jarl = function() {
-      calls$sections <<- c(calls$sections, "air_jarl")
-      NULL
-    },
     find_replace_in_file = function(from, to, file, fixed = TRUE) {
       calls$replaced <<- TRUE
       expect_identical(from, "(development version)")
@@ -136,7 +130,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
   expect_true("readme:FALSE" %in% calls$actions)
   expect_true("news:FALSE" %in% calls$actions)
   expect_true("tidy_description" %in% calls$actions)
-  expect_identical(calls$sections, c("gha", "dependabot", "air_jarl"))
+  expect_identical(calls$sections, c("gha", "dependabot"))
   expect_true(calls$replaced)
 })
 
@@ -160,10 +154,6 @@ test_that("pkg_setup skips optional sections when disabled", {
       called <<- TRUE
       NULL
     },
-    configure_air_jarl = function() {
-      called <<- TRUE
-      NULL
-    },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
     .package = "bootstrapper"
   )
@@ -171,16 +161,21 @@ test_that("pkg_setup skips optional sections when disabled", {
   expect_null(
     bootstrapper::pkg_setup(
       setup_gha = FALSE,
-      setup_dependabot = FALSE,
-      setup_air_jarl = FALSE
+      setup_dependabot = FALSE
     )
   )
   expect_false(called)
 })
 
-test_that("configure_gha runs expected usethis and replacement calls", {
+test_that("configure_gha runs expected usethis, replacement, and air/jarl calls", {
   configure_gha <- getFromNamespace("configure_gha", "bootstrapper")
-  actions <- list(github_actions = list(), replacements = character(), spell = FALSE)
+  actions <- list(
+    github_actions = list(),
+    replacements = character(),
+    spell = FALSE,
+    air = FALSE,
+    writes = character()
+  )
 
   testthat::local_mocked_bindings(
     use_github_action = function(...) {
@@ -192,12 +187,23 @@ test_that("configure_gha runs expected usethis and replacement calls", {
       actions$spell <<- error
       NULL
     },
+    use_air = function() {
+      actions$air <<- TRUE
+      NULL
+    },
     .package = "usethis"
   )
 
   testthat::local_mocked_bindings(
     find_replace_in_gha = function(from, to) {
-      actions$replacements <<- c(actions$replacements, paste(from, to, sep = " -> "))
+      actions$replacements <<- c(
+        actions$replacements,
+        paste(from, to, sep = " -> ")
+      )
+      NULL
+    },
+    write_to_path = function(text, filepath) {
+      actions$writes <<- c(actions$writes, filepath)
       NULL
     },
     .package = "bootstrapper"
@@ -220,10 +226,18 @@ test_that("configure_gha runs expected usethis and replacement calls", {
       "JamesIves/github-pages-deploy-action@v4.5.0 -> JamesIves/github-pages-deploy-action@v4"
     )
   )
+  expect_true(actions$air)
+  expect_setequal(
+    basename(actions$writes),
+    c("extensions.json", "jarl.toml")
+  )
 })
 
 test_that("configure_dependabot writes dependabot config", {
-  configure_dependabot <- getFromNamespace("configure_dependabot", "bootstrapper")
+  configure_dependabot <- getFromNamespace(
+    "configure_dependabot",
+    "bootstrapper"
+  )
   captured <- list(path = NULL, text = NULL)
 
   testthat::local_mocked_bindings(
@@ -238,34 +252,6 @@ test_that("configure_dependabot writes dependabot config", {
   expect_null(configure_dependabot())
   expect_identical(captured$path, fs::path(".github", "dependabot.yml"))
   expect_true(any(grepl("^version: 2$", captured$text)))
-})
-
-test_that("configure_air_jarl writes expected files", {
-  configure_air_jarl <- getFromNamespace("configure_air_jarl", "bootstrapper")
-  calls <- list(air = FALSE, writes = character())
-
-  testthat::local_mocked_bindings(
-    use_air = function() {
-      calls$air <<- TRUE
-      NULL
-    },
-    .package = "usethis"
-  )
-
-  testthat::local_mocked_bindings(
-    write_to_path = function(text, filepath) {
-      calls$writes <<- c(calls$writes, filepath)
-      NULL
-    },
-    .package = "bootstrapper"
-  )
-
-  expect_null(configure_air_jarl())
-  expect_true(calls$air)
-  expect_setequal(
-    basename(calls$writes),
-    c("extensions.json", "jarl.toml")
-  )
 })
 
 test_that("pkg_setup rethrows a generic message when test setup fails", {

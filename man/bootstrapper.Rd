@@ -10,7 +10,6 @@ bootstrapper(
   private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
-  setup_air_jarl = TRUE,
   ...
 )
 }
@@ -25,8 +24,6 @@ bootstrapper(
 \item{setup_gha}{Whether to configure GitHub Actions setup.}
 
 \item{setup_dependabot}{Whether to write a Dependabot configuration.}
-
-\item{setup_air_jarl}{Whether to configure Air and Jarl defaults.}
 
 \item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }

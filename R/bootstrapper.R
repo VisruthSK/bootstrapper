@@ -8,7 +8,6 @@
 #' @param private Whether to create the GitHub repository as private. Defaults to `TRUE`.
 #' @param setup_gha Whether to configure GitHub Actions setup.
 #' @param setup_dependabot Whether to write a Dependabot configuration.
-#' @param setup_air_jarl Whether to configure Air and Jarl defaults.
 #' @param ... Additional arguments passed to [usethis::create_package()].
 #'
 #' @return Invisibly returns `NULL`.
@@ -19,14 +18,12 @@ bootstrapper <- function(
   private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
-  setup_air_jarl = TRUE,
   ...
 ) {
   create_package(path, fields, private, ...)
   pkg_setup(
     setup_gha = setup_gha,
-    setup_dependabot = setup_dependabot,
-    setup_air_jarl = setup_air_jarl
+    setup_dependabot = setup_dependabot
   )
   invisible(NULL)
 }
@@ -87,14 +84,12 @@ create_package <- function(
 #'
 #' @param setup_gha Whether to configure GitHub Actions setup.
 #' @param setup_dependabot Whether to write a Dependabot configuration.
-#' @param setup_air_jarl Whether to configure Air and Jarl defaults.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
 pkg_setup <- function(
   setup_gha = TRUE,
-  setup_dependabot = TRUE,
-  setup_air_jarl = TRUE
+  setup_dependabot = TRUE
 ) {
   tryCatch(
     usethis::use_testthat(),
@@ -118,9 +113,6 @@ pkg_setup <- function(
   }
   if (setup_dependabot) {
     configure_dependabot()
-  }
-  if (setup_air_jarl) {
-    configure_air_jarl()
   }
 
   usethis::use_tidy_description()
@@ -151,6 +143,23 @@ configure_gha <- function() {
     "JamesIves/github-pages-deploy-action@v4.5.0",
     "JamesIves/github-pages-deploy-action@v4"
   )
+
+  usethis::use_air()
+  c(
+    "{",
+    '    "recommendations": [',
+    '        "Posit.air-vscode",',
+    '        "etiennebacher.jarl-vscode"',
+    "    ]",
+    "}"
+  ) |>
+    write_to_path(fs::path(".vscode", "extensions.json"))
+  c(
+    "[lint]",
+    "extend-select = [\"TESTTHAT\"]"
+  ) |>
+    write_to_path(fs::path("tests", "jarl.toml")) # TODO: need to make GHA jarl runs respect this
+
   invisible(NULL)
 }
 
@@ -174,31 +183,6 @@ configure_dependabot <- function() {
   invisible(NULL)
 }
 
-#' Configure Air and Jarl Defaults
-#'
-#' Sets up Air, VS Code extension recommendations, and Jarl lint defaults.
-#'
-#' @return Invisibly returns `NULL`.
-#' @keywords internal
-#' @noRd
-configure_air_jarl <- function() {
-  usethis::use_air()
-  c(
-    "{",
-    '    "recommendations": [',
-    '        "Posit.air-vscode",',
-    '        "etiennebacher.jarl-vscode"',
-    "    ]",
-    "}"
-  ) |>
-    write_to_path(fs::path(".vscode", "extensions.json"))
-  c(
-    "[lint]",
-    "extend-select = [\"TESTTHAT\"]"
-  ) |>
-    write_to_path(fs::path("tests", "jarl.toml")) # TODO: need to make GHA jarl runs respect this
-  invisible(NULL)
-}
 
 #' Choose and Apply a License
 #'
