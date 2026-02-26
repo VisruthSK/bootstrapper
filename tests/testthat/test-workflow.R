@@ -154,16 +154,25 @@ file_in_pkg <- function(fixture, ...) {
   fs::path(fixture$pkg_path, ...)
 }
 
+snapshot_name_from_path <- function(path) {
+  name <- gsub("[/\\\\]+", "-", path)
+  name <- sub("^\\.+", "dot-", name)
+  name <- gsub("[^A-Za-z0-9._-]", "-", name)
+
+  if (nzchar(fs::path_ext(path))) {
+    name
+  } else {
+    paste0(name, ".txt")
+  }
+}
+
 snapshot_workflow_files <- function(fixture, files) {
   for (f in files) {
     expect_true(file.exists(file_in_pkg(fixture, f)), info = f)
     expect_snapshot_file(
       file_in_pkg(fixture, f),
       compare = testthat::compare_file_text,
-      name = paste0(
-        "workflow-",
-        gsub("[^A-Za-z0-9_-]", "-", f)
-      )
+      name = snapshot_name_from_path(f)
     )
   }
 }
@@ -172,20 +181,22 @@ test_that("workflow step: create_package creates git-backed package skeleton", {
   fixture <- run_workflow_fixture()
 
   expect_true(isTRUE(fixture$github_private))
+  expect_true(file.exists(file_in_pkg(fixture, ".git", "config")))
   expect_false(file.exists(file_in_pkg(fixture, "demoPkg.Rproj")))
 
   old <- setwd(fixture$pkg_path)
   on.exit(setwd(old), add = TRUE)
-  expect_snapshot(sort(list.files(
+  files <- sort(list.files(
     ".",
     recursive = TRUE,
     all.files = TRUE,
     no.. = TRUE
-  )))
+  ))
+  expect_snapshot(files[!grepl("^\\.git/", files)])
 
   snapshot_workflow_files(
     fixture,
-    c("DESCRIPTION", "LICENSE.md", ".Rbuildignore", ".git/config")
+    c("DESCRIPTION", "LICENSE.md", ".Rbuildignore")
   )
 })
 
@@ -228,8 +239,8 @@ test_that("workflow step: setup templates are copied to expected locations", {
       ".github/dependabot.yml",
       "AGENTS.md",
       "tests/jarl.toml",
-      ".vscode/extensions.json",
-      ".git/hooks/pre-commit"
+      ".vscode/extensions.json"
     )
   )
+  expect_true(file.exists(file_in_pkg(fixture, ".git", "hooks", "pre-commit")))
 })
