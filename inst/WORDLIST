@@ -1,6 +1,7 @@
 CMD
 Codecov
 Dependabot
+GHA
 Jarl
 Kandali
 ORCID
@@ -10,3 +11,4 @@ README
 Srimath
 md
 pre
+precommit
