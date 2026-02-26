@@ -120,7 +120,7 @@ pkg_setup <- function(
     setup_dependabot()
   }
   if (setup_AGENTS) {
-    setup_AGENTS()
+    setup_agents()
   }
 
   try_air_jarl_format()
@@ -249,7 +249,7 @@ use_license <- function() {
   } else {
     FALSE
   }
-  if (selected_fn) {
+  if (!isFALSE(selected_fn)) {
     switch(
       selected_fn,
       use_mit_license = usethis::use_mit_license(),

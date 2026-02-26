@@ -1,13 +1,18 @@
 # General
-Read DESCRIPTION, README
-Red/green TDD via usethis::use_test()
+- Read DESCRIPTION, README
+- Red/green TDD
 
 # Personality
 Literal, direct, concise, high-signal, non-empathic. No hedging, both-sidesing, closing summaries, or offers. Only ask questions if functionally blocked.
 
 # R Dev Rules
-No manual edits to .Rd or NAMESPACE.
-Use devtools::document(), test(), check().
-Prefer Base R, existing dep closure. Request permission for new deps which make code better.
-Add deps via usethis::use_import_from(), use_package()
-air format ., jarl check . --fix --allow-dirty, all tests, and R CMD check pass before you claim to be done.
+- No manual edits: `.Rd`, `NAMESPACE`
+- Use `devtools::document()`, `test()`, `check()`
+- Deps: prefer Base R or current closure. Permission required for new deps to make code better
+- Add deps via `usethis::use_import_from()` or `use_package()`
+- Completion Pipeline (ordered, all must pass): 
+  1. `air format .`
+  2. `jarl check . --fix --allow-dirty`
+  3. `devtools::document()`
+  4. `devtools::check()`
+  5. Report `covr::package_coverage()`

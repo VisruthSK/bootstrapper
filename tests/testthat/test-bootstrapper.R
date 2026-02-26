@@ -111,15 +111,15 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
   )
 
   testthat::local_mocked_bindings(
-    configure_gha = function() {
+    setup_gha = function() {
       calls$sections <<- c(calls$sections, "gha")
       NULL
     },
-    configure_dependabot = function() {
+    setup_dependabot = function() {
       calls$sections <<- c(calls$sections, "dependabot")
       NULL
     },
-    configure_agents = function() {
+    setup_agents = function() {
       calls$sections <<- c(calls$sections, "agents")
       NULL
     },
@@ -162,15 +162,15 @@ test_that("pkg_setup skips optional sections when disabled", {
   )
 
   testthat::local_mocked_bindings(
-    configure_gha = function() {
+    setup_gha = function() {
       called <<- TRUE
       NULL
     },
-    configure_dependabot = function() {
+    setup_dependabot = function() {
       called <<- TRUE
       NULL
     },
-    configure_agents = function() {
+    setup_agents = function() {
       called <<- TRUE
       NULL
     },
@@ -205,9 +205,9 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
   )
 
   testthat::local_mocked_bindings(
-    configure_gha = function() NULL,
-    configure_dependabot = function() NULL,
-    configure_agents = function() {
+    setup_gha = function() NULL,
+    setup_dependabot = function() NULL,
+    setup_agents = function() {
       called <<- TRUE
       NULL
     },
@@ -220,8 +220,8 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
   expect_true(called)
 })
 
-test_that("configure_gha runs expected usethis, replacement, and air/jarl calls", {
-  configure_gha <- getFromNamespace("configure_gha", "bootstrapper")
+test_that("setup_gha runs expected usethis, replacement, and template calls", {
+  setup_gha <- getFromNamespace("setup_gha", "bootstrapper")
   actions <- list(
     github_actions = list(),
     replacements = character(),
@@ -255,14 +255,15 @@ test_that("configure_gha runs expected usethis, replacement, and air/jarl calls"
       )
       NULL
     },
-    write_to_path = function(text, filepath) {
-      actions$writes <<- c(actions$writes, filepath)
+    copy_template_file = function(template_file, destination) {
+      actions$writes <<- c(actions$writes, destination)
+      expect_true(template_file %in% c("extensions.json", "jarl.toml"))
       NULL
     },
     .package = "bootstrapper"
   )
 
-  expect_null(configure_gha())
+  expect_null(setup_gha())
   expect_length(actions$github_actions, 3)
   expect_identical(actions$github_actions[[1]][[1]], "check-standard")
   expect_true(isTRUE(actions$github_actions[[1]]$badge))
@@ -286,25 +287,43 @@ test_that("configure_gha runs expected usethis, replacement, and air/jarl calls"
   )
 })
 
-test_that("configure_dependabot writes dependabot config", {
-  configure_dependabot <- getFromNamespace(
-    "configure_dependabot",
+test_that("setup_dependabot copies dependabot template", {
+  setup_dependabot <- getFromNamespace(
+    "setup_dependabot",
     "bootstrapper"
   )
-  captured <- list(path = NULL, text = NULL)
+  captured <- list(template_file = NULL, destination = NULL)
 
   testthat::local_mocked_bindings(
-    write_to_path = function(text, filepath) {
-      captured$path <<- filepath
-      captured$text <<- text
+    copy_template_file = function(template_file, destination) {
+      captured$template_file <<- template_file
+      captured$destination <<- destination
       NULL
     },
     .package = "bootstrapper"
   )
 
-  expect_null(configure_dependabot())
-  expect_identical(captured$path, fs::path(".github", "dependabot.yml"))
-  expect_true(any(grepl("^version: 2$", captured$text)))
+  expect_null(setup_dependabot())
+  expect_identical(captured$template_file, "dependabot.yml")
+  expect_identical(captured$destination, fs::path(".github", "dependabot.yml"))
+})
+
+test_that("setup_agents copies AGENTS template", {
+  setup_agents <- getFromNamespace("setup_agents", "bootstrapper")
+  captured <- list(template_file = NULL, destination = NULL)
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      captured$template_file <<- template_file
+      captured$destination <<- destination
+      NULL
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(setup_agents())
+  expect_identical(captured$template_file, "AGENTS.md")
+  expect_identical(captured$destination, "AGENTS.md")
 })
 
 test_that("pkg_setup rethrows a generic message when test setup fails", {
@@ -351,6 +370,192 @@ test_that("use_license warns and returns NULL in non-interactive mode", {
   expect_true(any(grepl("No license selected", messages, fixed = TRUE)))
 })
 
+test_that("use_license applies selected license in interactive mode", {
+  used_mit <- FALSE
+  warned <- FALSE
+
+  testthat::local_mocked_bindings(
+    is_interactive = function() TRUE,
+    .package = "bootstrapper"
+  )
+
+  testthat::local_mocked_bindings(
+    menu = function(choices, title = NULL, graphics = FALSE) {
+      expect_identical(title, "License")
+      expect_true("MIT" %in% choices)
+      1L
+    },
+    .package = "utils"
+  )
+
+  testthat::local_mocked_bindings(
+    ui_info = function(message, ...) NULL,
+    ui_warn = function(message, ...) {
+      warned <<- TRUE
+      NULL
+    },
+    use_mit_license = function(...) {
+      used_mit <<- TRUE
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  expect_null(bootstrapper::use_license())
+  expect_true(used_mit)
+  expect_false(warned)
+})
+
+test_that("use_license dispatches all remaining license helpers", {
+  called <- character()
+  current_label <- NULL
+  label_to_fn <- c(
+    "GPL" = "use_gpl_license",
+    "GPL-3" = "use_gpl3_license",
+    "LGPL" = "use_lgpl_license",
+    "AGPL" = "use_agpl_license",
+    "AGPL-3" = "use_agpl3_license",
+    "Apache-2.0" = "use_apl2_license",
+    "Apache" = "use_apache_license",
+    "CC BY" = "use_ccby_license",
+    "CC0" = "use_cc0_license",
+    "Proprietary" = "use_proprietary_license"
+  )
+
+  testthat::local_mocked_bindings(
+    is_interactive = function() TRUE,
+    .package = "bootstrapper"
+  )
+
+  testthat::local_mocked_bindings(
+    menu = function(choices, title = NULL, graphics = FALSE) {
+      match(current_label, choices)
+    },
+    .package = "utils"
+  )
+
+  testthat::local_mocked_bindings(
+    ui_info = function(message, ...) NULL,
+    ui_warn = function(message, ...) NULL,
+    use_mit_license = function(...) {
+      called <<- c(called, "use_mit_license")
+      NULL
+    },
+    use_gpl_license = function(...) {
+      called <<- c(called, "use_gpl_license")
+      NULL
+    },
+    use_gpl3_license = function(...) {
+      called <<- c(called, "use_gpl3_license")
+      NULL
+    },
+    use_lgpl_license = function(...) {
+      called <<- c(called, "use_lgpl_license")
+      NULL
+    },
+    use_agpl_license = function(...) {
+      called <<- c(called, "use_agpl_license")
+      NULL
+    },
+    use_agpl3_license = function(...) {
+      called <<- c(called, "use_agpl3_license")
+      NULL
+    },
+    use_apl2_license = function(...) {
+      called <<- c(called, "use_apl2_license")
+      NULL
+    },
+    use_apache_license = function(...) {
+      called <<- c(called, "use_apache_license")
+      NULL
+    },
+    use_ccby_license = function(...) {
+      called <<- c(called, "use_ccby_license")
+      NULL
+    },
+    use_cc0_license = function(...) {
+      called <<- c(called, "use_cc0_license")
+      NULL
+    },
+    use_proprietary_license = function(...) {
+      called <<- c(called, "use_proprietary_license")
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  for (label in names(label_to_fn)) {
+    current_label <- label
+    called <- character()
+
+    expect_null(bootstrapper::use_license())
+    expect_identical(called, unname(label_to_fn[[label]]))
+  }
+})
+
+test_that("is_interactive mirrors base interactive", {
+  is_interactive <- getFromNamespace("is_interactive", "bootstrapper")
+  expect_identical(is_interactive(), interactive())
+})
+
+test_that("copy_template_file creates parent directories and copies content", {
+  tmp <- tempfile("bootstrapper-template-copy-")
+  dir.create(tmp)
+  old <- setwd(tmp)
+  on.exit(setwd(old), add = TRUE)
+
+  copy_template_file <- getFromNamespace("copy_template_file", "bootstrapper")
+  destination <- fs::path("nested", ".github", "dependabot.yml")
+
+  expect_false(file.exists(destination))
+  expect_null(copy_template_file("dependabot.yml", destination))
+  expect_true(file.exists(destination))
+  writeLines("stale", destination)
+  expect_null(copy_template_file("dependabot.yml", destination))
+  expect_identical(
+    readLines(destination, warn = FALSE),
+    readLines(
+      fs::path_package("bootstrapper", "templates", "dependabot.yml"),
+      warn = FALSE
+    )
+  )
+})
+
+test_that("try_air_jarl_format runs both commands and returns status", {
+  try_air_jarl_format <- getFromNamespace("try_air_jarl_format", "bootstrapper")
+  commands <- character()
+
+  testthat::local_mocked_bindings(
+    system2 = function(command, args, stdout = FALSE, stderr = FALSE, ...) {
+      commands <<- c(commands, paste(command, paste(args, collapse = " ")))
+      0L
+    },
+    .package = "base"
+  )
+
+  status <- try_air_jarl_format()
+
+  expect_identical(
+    commands,
+    c("air format .", "jarl check . --fix --allow-dirty")
+  )
+  expect_identical(status, c(air = TRUE, jarl = TRUE))
+})
+
+test_that("try_air_jarl_format marks failed commands as FALSE", {
+  try_air_jarl_format <- getFromNamespace("try_air_jarl_format", "bootstrapper")
+
+  testthat::local_mocked_bindings(
+    system2 = function(command, args, stdout = FALSE, stderr = FALSE, ...) {
+      stop("tool missing")
+    },
+    .package = "base"
+  )
+
+  status <- try_air_jarl_format()
+  expect_identical(status, c(air = FALSE, jarl = FALSE))
+})
+
 test_that("file helpers create directories and replace text", {
   tmp <- tempfile("bootstrapper-helpers-")
   dir.create(tmp)
@@ -375,6 +580,15 @@ test_that("file helpers create directories and replace text", {
   expect_true(find_replace_in_file("alpha", "ALPHA", "one.txt"))
   expect_identical(readLines("one.txt", warn = FALSE), c("ALPHA", "beta"))
   expect_false(find_replace_in_file("gamma", "GAMMA", "one.txt"))
+
+  writeLines(c("abc123", "abc999"), "regex.txt")
+  expect_true(find_replace_in_file(
+    "^abc[0-9]+$",
+    "ID",
+    "regex.txt",
+    fixed = FALSE
+  ))
+  expect_identical(readLines("regex.txt", warn = FALSE), c("ID", "ID"))
 
   dir.create("sub")
   writeLines("token", fs::path("sub", "a.yaml"))
