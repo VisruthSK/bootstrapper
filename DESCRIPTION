@@ -4,8 +4,10 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Visruth", "Srimath Kandali", , "public@visruth.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0009-0005-9097-0688"))
-Description: Quickly start new R packages, adding some opinionated default
-    GHA, suggested extensions, etc.
+Description: Bootstrap new R packages with strongly opinionated defaults.
+    Creates the package scaffold, wires up tests, README and NEWS,
+    configures GitHub Actions and Dependabot, adds Air/Jarl setup, and
+    drop in a default AGENTS.md for building R packages.
 License: GPL (>= 3)
 URL: https://visruthsk.github.io/bootstrapper/
 Depends: 
