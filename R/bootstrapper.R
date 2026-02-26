@@ -190,20 +190,8 @@ setup_gha <- function() {
   )
 
   usethis::use_air()
-  c(
-    "{",
-    '    "recommendations": [',
-    '        "Posit.air-vscode",',
-    '        "etiennebacher.jarl-vscode"',
-    "    ]",
-    "}"
-  ) |>
-    write_to_path(fs::path(".vscode", "extensions.json"))
-  c(
-    "[lint]",
-    "extend-select = [\"TESTTHAT\"]"
-  ) |>
-    write_to_path(fs::path("tests", "jarl.toml")) # TODO: need to make GHA jarl runs respect this
+  copy_template_file("extensions.json", fs::path(".vscode", "extensions.json"))
+  copy_template_file("jarl.toml", fs::path("tests", "jarl.toml")) # TODO: need to make GHA jarl runs respect this
 }
 
 #' Configure Dependabot Defaults
@@ -214,44 +202,19 @@ setup_gha <- function() {
 #' @keywords internal
 #' @noRd
 setup_dependabot <- function() {
-  c(
-    "version: 2",
-    "updates:",
-    "  - package-ecosystem: \"github-actions\"",
-    "    directory: \"/\"",
-    "    schedule:",
-    "      interval: \"weekly\""
-  ) |> # TODO: move file to inst?
-    write_to_path(fs::path(".github", "dependabot.yml"))
+  copy_template_file("dependabot.yml", fs::path(".github", "dependabot.yml"))
 }
 
 #' Configure AGENTS Defaults
 #'
-#' Placeholder for AGENTS file setup.
+#' Copies an opinionated, concise AGENTS.md for R package development.
 #'
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
 #' @noRd
 setup_agents <- function() {
-  # See https://simonwillison.net/guides/agentic-engineering-patterns/
-  c(
-    "# General",
-    "Read DESCRIPTION, README",
-    "Red/green TDD via usethis::use_test()",
-    "",
-    "# Personality",
-    "Literal, direct, concise, high-signal, non-empathic. No hedging, both-sidesing, closing summaries, or offers. Only ask questions if functionally blocked.",
-    "",
-    "# R Dev Rules",
-    "No manual edits to .Rd or NAMESPACE.",
-    "Use devtools::document(), test(), check().",
-    "Prefer Base R, existing dep closure. Request permission for new deps which make code better.",
-    "Add deps via usethis::use_import_from(), use_package()",
-    "air format ., jarl check . --fix --allow-dirty, all tests, and R CMD check pass before you claim to be done."
-  ) |>
-    write_to_path(fs::path("AGENTS.md"))
+  copy_template_file("AGENTS.md", "AGENTS.md")
 }
-
 
 #' Choose and Apply a License
 #'

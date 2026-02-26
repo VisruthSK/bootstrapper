@@ -13,6 +13,23 @@ write_to_path <- function(text, filepath) {
   writeLines(text, filepath)
 }
 
+#' Copy a Template File
+#'
+#' Copies a file from `inst/templates` into the target location.
+#'
+#' @param template_file Template file name inside `inst/templates`.
+#' @param destination Destination file path.
+#'
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+copy_template_file <- function(template_file, destination) {
+  fs::dir_create(fs::path_dir(destination))
+  fs::path_package("bootstrapper", "templates", template_file) |>
+    fs::file_copy(destination, overwrite = TRUE)
+  invisible(NULL)
+}
+
 #' Find and Replace in a File
 #'
 #' Replaces matching text in a single file.
