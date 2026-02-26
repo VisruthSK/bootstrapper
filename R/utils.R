@@ -7,9 +7,9 @@ find_replace_in_file <- function(from, to, file, fixed = TRUE) {
   x <- readLines(file, warn = FALSE)
   if (any(grepl(from, x, fixed = fixed))) {
     writeLines(gsub(from, to, x, fixed = fixed), file)
-    TRUE
+    invisible(TRUE)
   } else {
-    FALSE
+    invisible(FALSE)
   }
 }
 

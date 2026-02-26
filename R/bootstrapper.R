@@ -87,6 +87,12 @@ pkg_setup <- function() {
   )
   usethis::use_readme_md(open = FALSE)
   usethis::use_news_md(open = FALSE)
+  # TODO: check if this is necessary to make r cmd check pass.
+  find_replace_in_file(
+    "(development version)",
+    "0.0.0.9000",
+    fs::path("NEWS.md")
+  )
 
   # GitHub Actions setup
   usethis::use_github_action("check-standard", badge = TRUE)

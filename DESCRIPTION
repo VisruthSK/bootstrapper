@@ -8,6 +8,8 @@ Description: Quickly start new R packages, adding some opinionated default
     GHA, suggested extensions, etc.
 License: GPL (>= 3)
 URL: https://visruthsk.github.io/bootstrapper/
+Depends: 
+    R (>= 4.2.0)
 Imports: 
     fs,
     usethis,
