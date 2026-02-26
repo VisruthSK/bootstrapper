@@ -8,6 +8,7 @@
 #' @param private Whether to create the GitHub repository as private. Defaults to `TRUE`.
 #' @param setup_gha Whether to configure GitHub Actions setup.
 #' @param setup_dependabot Whether to write a Dependabot configuration.
+#' @param setup_AGENTS Whether to write a default AGENTS file.
 #' @param ... Additional arguments passed to [usethis::create_package()].
 #'
 #' @return Invisibly returns `NULL`.
@@ -18,12 +19,14 @@ bootstrapper <- function(
   private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
+  setup_AGENTS = FALSE,
   ...
 ) {
   create_package(path, fields, private, ...)
   pkg_setup(
     setup_gha = setup_gha,
-    setup_dependabot = setup_dependabot
+    setup_dependabot = setup_dependabot,
+    setup_AGENTS = setup_AGENTS
   )
   invisible(NULL)
 }
@@ -84,12 +87,14 @@ create_package <- function(
 #'
 #' @param setup_gha Whether to configure GitHub Actions setup.
 #' @param setup_dependabot Whether to write a Dependabot configuration.
+#' @param setup_AGENTS Whether to write a default AGENTS file.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
 pkg_setup <- function(
   setup_gha = TRUE,
-  setup_dependabot = TRUE
+  setup_dependabot = TRUE,
+  setup_AGENTS = FALSE
 ) {
   tryCatch(
     usethis::use_testthat(),
@@ -109,10 +114,13 @@ pkg_setup <- function(
   )
 
   if (setup_gha) {
-    configure_gha()
+    setup_gha()
   }
   if (setup_dependabot) {
-    configure_dependabot()
+    setup_dependabot()
+  }
+  if (setup_AGENTS) {
+    setup_AGENTS()
   }
 
   try_air_jarl_format()
@@ -166,7 +174,7 @@ try_air_jarl_format <- function() {
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
 #' @noRd
-configure_gha <- function() {
+setup_gha <- function() {
   usethis::use_github_action("check-standard", badge = TRUE)
   usethis::use_github_action("test-coverage", badge = TRUE)
   usethis::use_github_action(
@@ -196,8 +204,6 @@ configure_gha <- function() {
     "extend-select = [\"TESTTHAT\"]"
   ) |>
     write_to_path(fs::path("tests", "jarl.toml")) # TODO: need to make GHA jarl runs respect this
-
-  invisible(NULL)
 }
 
 #' Configure Dependabot Defaults
@@ -207,7 +213,7 @@ configure_gha <- function() {
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
 #' @noRd
-configure_dependabot <- function() {
+setup_dependabot <- function() {
   c(
     "version: 2",
     "updates:",
@@ -217,7 +223,35 @@ configure_dependabot <- function() {
     "      interval: \"weekly\""
   ) |> # TODO: move file to inst?
     write_to_path(fs::path(".github", "dependabot.yml"))
-  invisible(NULL)
+}
+
+#' Configure AGENTS Defaults
+#'
+#' Placeholder for AGENTS file setup.
+#'
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+setup_agents <- function() {
+  # See https://simonwillison.net/guides/agentic-engineering-patterns/
+  c(
+    "# General Rules",
+    "First run the tests.",
+    "red/green TDD. Add tests using usethis::use_test()",
+    "Read DESCRIPTION and README.md.",
+    "",
+    "# Personality",
+    "Use literal, direct, concise, specific, high signal, non-empathic, highly structured language. Don't hedge. Don't both sides issues. Don't ask questions at the end of the turn. Don't make offers at the end of the turn.",
+    "Only ask questions if it is a request for information necessary for a previous request",
+    "",
+    "# R Package Development Rules",
+    "Never edit .Rd files or NAMESPACE directly.",
+    "Use devtools::document(), devtools::test(), devtools::check() for redoc, tests, R CMD CHECK",
+    "Try not to add new dependencies unless the code would be much cleaner/faster/better--note added deps to me. Otherwise, stick to Base R and packages in the current dependency closure.",
+    "Use usethis::use_import_from() or usethis::use_package() to add dependencies",
+    "Make sure air format ., jarl check . --fix --allow-dirty, all tests, and R CMD check pass before you claim to be done."
+  ) |>
+    write_to_path(fs::path("AGENTS.md"))
 }
 
 

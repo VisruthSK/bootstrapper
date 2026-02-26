@@ -4,12 +4,14 @@
 \alias{pkg_setup}
 \title{Apply Opinionated Package Setup}
 \usage{
-pkg_setup(setup_gha = TRUE, setup_dependabot = TRUE)
+pkg_setup(setup_gha = TRUE, setup_dependabot = TRUE, setup_AGENTS = FALSE)
 }
 \arguments{
 \item{setup_gha}{Whether to configure GitHub Actions setup.}
 
 \item{setup_dependabot}{Whether to write a Dependabot configuration.}
+
+\item{setup_AGENTS}{Whether to write a default AGENTS file.}
 }
 \value{
 Invisibly returns \code{NULL}.

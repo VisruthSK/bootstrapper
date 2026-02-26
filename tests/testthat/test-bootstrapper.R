@@ -10,10 +10,11 @@ test_that("bootstrapper orchestrates package creation and setup", {
       expect_identical(list(...), list(open = FALSE))
       NULL
     },
-    pkg_setup = function(setup_gha, setup_dependabot) {
+    pkg_setup = function(setup_gha, setup_dependabot, setup_AGENTS) {
       calls <<- c(calls, "pkg_setup")
       expect_false(setup_gha)
       expect_false(setup_dependabot)
+      expect_false(setup_AGENTS)
       NULL
     },
     .package = "bootstrapper"
@@ -118,6 +119,10 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
       calls$sections <<- c(calls$sections, "dependabot")
       NULL
     },
+    configure_agents = function() {
+      calls$sections <<- c(calls$sections, "agents")
+      NULL
+    },
     find_replace_in_file = function(from, to, file, fixed = TRUE) {
       calls$replaced <<- TRUE
       expect_identical(from, "(development version)")
@@ -165,6 +170,10 @@ test_that("pkg_setup skips optional sections when disabled", {
       called <<- TRUE
       NULL
     },
+    configure_agents = function() {
+      called <<- TRUE
+      NULL
+    },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
     try_air_jarl_format = function() {
       formatted <<- TRUE
@@ -176,11 +185,39 @@ test_that("pkg_setup skips optional sections when disabled", {
   expect_null(
     bootstrapper::pkg_setup(
       setup_gha = FALSE,
-      setup_dependabot = FALSE
+      setup_dependabot = FALSE,
+      setup_AGENTS = FALSE
     )
   )
   expect_false(called)
   expect_true(formatted)
+})
+
+test_that("pkg_setup runs AGENTS setup when enabled", {
+  called <- FALSE
+
+  testthat::local_mocked_bindings(
+    use_testthat = function() NULL,
+    use_readme_md = function(open = FALSE) NULL,
+    use_news_md = function(open = FALSE) NULL,
+    use_tidy_description = function() NULL,
+    .package = "usethis"
+  )
+
+  testthat::local_mocked_bindings(
+    configure_gha = function() NULL,
+    configure_dependabot = function() NULL,
+    configure_agents = function() {
+      called <<- TRUE
+      NULL
+    },
+    find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
+    try_air_jarl_format = function() NULL,
+    .package = "bootstrapper"
+  )
+
+  expect_null(bootstrapper::pkg_setup(setup_AGENTS = TRUE))
+  expect_true(called)
 })
 
 test_that("configure_gha runs expected usethis, replacement, and air/jarl calls", {

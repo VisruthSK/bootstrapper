@@ -10,6 +10,7 @@ bootstrapper(
   private = TRUE,
   setup_gha = TRUE,
   setup_dependabot = TRUE,
+  setup_AGENTS = FALSE,
   ...
 )
 }
@@ -24,6 +25,8 @@ bootstrapper(
 \item{setup_gha}{Whether to configure GitHub Actions setup.}
 
 \item{setup_dependabot}{Whether to write a Dependabot configuration.}
+
+\item{setup_AGENTS}{Whether to write a default AGENTS file.}
 
 \item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }
