@@ -188,7 +188,7 @@ setup_gha <- function() {
   find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
   find_replace_in_gha(
     "actions/upload-artifact@v4",
-    "actions/upload-artifact@v6"
+    "actions/upload-artifact@v7"
   )
   find_replace_in_gha(
     "JamesIves/github-pages-deploy-action@v4.5.0",
