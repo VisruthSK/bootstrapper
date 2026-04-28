@@ -8,7 +8,8 @@ pkg_setup(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE
+  setup_precommit = TRUE,
+  setup_touchstone = TRUE
 )
 }
 \arguments{

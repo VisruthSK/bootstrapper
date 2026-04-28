@@ -78,7 +78,8 @@ pkg_setup <- function(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE
+  setup_precommit = TRUE,
+  setup_touchstone = TRUE
 ) {
   tryCatch(
     usethis::use_testthat(),
@@ -109,6 +110,9 @@ pkg_setup <- function(
   }
   if (setup_precommit) {
     setup_precommit()
+  }
+  if (setup_touchstone) {
+    setup_touchstone()
   }
 
   # cleanup
@@ -231,6 +235,25 @@ setup_precommit <- function() {
   copy_template_file("pre-commit", fs::path(".git", "hooks", "pre-commit"))
   Sys.chmod(fs::path(".git", "hooks", "pre-commit"), mode = "0755")
   invisible(NULL)
+}
+
+#' Configure Touchstone
+#'
+#' Write a modified Touchstone GHA to benchmark PRs. You still
+#' need to write an appropriate `script.R` for the actual
+#' benchmarks. This version of the touchstone commenting GHA
+#' updates a single comment instead of making multiple, and also
+#' adds the touchstone plots in a dropdown. These are stored on a new
+#' branch.
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
+setup_touchstone <- function() {
+  suppressWarnings(touchstone::use_touchstone())
+  copy_template_file(
+    "touchstone-comment.yaml",
+    fs::path(".github", "workflows", "touchstone-comment.yaml")
+  )
 }
 
 #' Remove RStudio Project Ignore Entries

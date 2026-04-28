@@ -15,6 +15,7 @@ Depends:
 Imports: 
     fs,
     spelling,
+    touchstone,
     usethis,
     utils
 Suggests: 
