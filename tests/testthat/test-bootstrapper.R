@@ -747,8 +747,8 @@ test_that("file helpers create directories and replace text", {
     fs::path(".github", "workflows", "check.yml")
   )
   find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
-  expect_true(grepl(
-    "checkout@v6",
-    readLines(fs::path(".github", "workflows", "check.yml"))
-  ))
+  expect_match(
+    readLines(fs::path(".github", "workflows", "check.yml")),
+    "checkout@v6"
+  )
 })
