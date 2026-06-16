@@ -9,6 +9,7 @@ opinionated.
 You can install the development version of bootstrapper like so:
 
 ``` r
+
 pak::pak("VisruthSK/bootstrapper")
 ```
 
@@ -20,6 +21,7 @@ directory which is already tracked by git and already has GitHub as a
 remote.
 
 ``` r
+
 bootstrapper::bootstrapper()
 ```
 
@@ -27,6 +29,7 @@ The main thing to set is the fields option, where you should put your
 own name, email, etc. instead.
 
 ``` r
+
 bootstrapper::bootstrapper(
   fields = list(
     "Authors@R" = person(
