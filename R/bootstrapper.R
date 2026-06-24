@@ -265,8 +265,16 @@ setup_touchstone <- function() {
     fs::path(".github", "workflows", "touchstone-comment.yaml")
   )
   copy_template_file(
+    "touchstone-receive.yaml",
+    fs::path(".github", "workflows", "touchstone-receive.yaml")
+  )
+  copy_template_file(
     "touchstone-script.R",
     fs::path("touchstone", "script.R")
+  )
+  copy_template_file(
+    "touchstone-config.json",
+    fs::path("touchstone", "config.json")
   )
 }
 
