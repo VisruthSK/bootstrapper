@@ -244,6 +244,55 @@ test_that("workflow step: setup_touchstone writes touchstone files", {
   )
 })
 
+test_that("workflow step: setup_touchstone writes usable Touchstone config", {
+  skip_if_not_installed("touchstone")
+  skip_if_not_installed("jsonlite")
+
+  fixture <- run_workflow_fixture(setup_touchstone = TRUE)
+
+  config_path <- file_in_pkg(fixture, "touchstone", "config.json")
+  workflow_path <- file_in_pkg(
+    fixture,
+    ".github",
+    "workflows",
+    "touchstone-receive.yaml"
+  )
+
+  config_json <- paste(readLines(config_path, warn = FALSE), collapse = "\n")
+  expect_true(jsonlite::validate(config_json))
+
+  config <- jsonlite::fromJSON(config_json)
+
+  expect_setequal(names(config), c("os", "r", "rspm"))
+  expect_identical(config$os, "ubuntu-24.04")
+  expect_identical(config$r, "4.5.3")
+  expect_identical(
+    config$rspm,
+    "https://packagemanager.posit.co/cran/__linux__/noble/latest"
+  )
+
+  receive_workflow <- paste(
+    readLines(workflow_path, warn = FALSE),
+    collapse = "\n"
+  )
+
+  expect_match(
+    receive_workflow,
+    "runs-on: ${{ matrix.config.os }}",
+    fixed = TRUE
+  )
+  expect_match(
+    receive_workflow,
+    "RSPM: ${{ matrix.config.rspm }}",
+    fixed = TRUE
+  )
+  expect_match(
+    receive_workflow,
+    "r-version: ${{ matrix.config.r }}",
+    fixed = TRUE
+  )
+})
+
 test_that("workflow step: setup templates are copied to expected locations", {
   fixture <- run_workflow_fixture(setup_AGENTS = TRUE)
 
