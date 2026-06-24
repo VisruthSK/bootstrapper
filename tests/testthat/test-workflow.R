@@ -1,6 +1,7 @@
 run_workflow_fixture <- function(
   setup_AGENTS = TRUE,
-  setup_touchstone = FALSE
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE
 ) {
   tmp <- tempfile("bootstrapper-workflow-")
   dir.create(tmp)
@@ -138,6 +139,7 @@ run_workflow_fixture <- function(
       fields = fields,
       setup_AGENTS = setup_AGENTS,
       setup_touchstone = setup_touchstone,
+      setup_touchstone_plots = setup_touchstone_plots,
       open = FALSE
     )
   )
@@ -226,7 +228,7 @@ test_that("workflow step: setup_gha writes and rewrites workflow files", {
   )
 })
 
-test_that("workflow step: setup_touchstone writes touchstone files", {
+test_that("workflow step: setup_touchstone writes minimal touchstone files by default", {
   skip_if_not_installed("touchstone")
   fixture <- run_workflow_fixture(setup_touchstone = TRUE)
 
@@ -242,6 +244,54 @@ test_that("workflow step: setup_touchstone writes touchstone files", {
       "touchstone/script.R"
     )
   )
+
+  comment_workflow <- paste(
+    readLines(
+      file_in_pkg(fixture, ".github", "workflows", "touchstone-comment.yaml"),
+      warn = FALSE
+    ),
+    collapse = "\n"
+  )
+
+  expect_match(comment_workflow, "actions: read", fixed = TRUE)
+  expect_match(comment_workflow, "pull-requests: write", fixed = TRUE)
+  expect_match(comment_workflow, "path: ./pr/info.txt", fixed = TRUE)
+  expect_match(comment_workflow, "skip_unchanged: true", fixed = TRUE)
+
+  expect_no_match(comment_workflow, "contents: write", fixed = TRUE)
+  expect_no_match(comment_workflow, "actions/checkout", fixed = TRUE)
+  expect_no_match(comment_workflow, "visual-benchmarks", fixed = TRUE)
+  expect_no_match(comment_workflow, "touchstone-plots", fixed = TRUE)
+  expect_no_match(comment_workflow, "github-pages-deploy-action", fixed = TRUE)
+  expect_no_match(comment_workflow, "path: ./comment.txt", fixed = TRUE)
+})
+
+test_that("workflow step: setup_touchstone can write plots comment workflow", {
+  skip_if_not_installed("touchstone")
+
+  fixture <- run_workflow_fixture(
+    setup_touchstone = TRUE,
+    setup_touchstone_plots = TRUE
+  )
+
+  comment_workflow <- paste(
+    readLines(
+      file_in_pkg(fixture, ".github", "workflows", "touchstone-comment.yaml"),
+      warn = FALSE
+    ),
+    collapse = "\n"
+  )
+
+  expect_match(comment_workflow, "actions: read", fixed = TRUE)
+  expect_match(comment_workflow, "contents: write", fixed = TRUE)
+  expect_match(comment_workflow, "pull-requests: write", fixed = TRUE)
+
+  expect_match(comment_workflow, "actions/checkout", fixed = TRUE)
+  expect_match(comment_workflow, "visual-benchmarks", fixed = TRUE)
+  expect_match(comment_workflow, "touchstone-plots", fixed = TRUE)
+  expect_match(comment_workflow, "github-pages-deploy-action", fixed = TRUE)
+  expect_match(comment_workflow, "path: ./comment.txt", fixed = TRUE)
+  expect_match(comment_workflow, "skip_unchanged: true", fixed = TRUE)
 })
 
 test_that("workflow step: setup_touchstone writes usable Touchstone config", {

@@ -9,6 +9,9 @@
 #' @param setup_AGENTS Whether to write a default AGENTS file.
 #' @param setup_precommit Whether to write a Bash pre-commit hook.
 #' @param setup_touchstone Whether to setup Touchstone benchmarking.
+#' @param setup_touchstone_plots Whether to use the Touchstone comment workflow
+#'   that publishes benchmark plots to a separate branch. Only used when
+#'   `setup_touchstone = TRUE`.
 #' @param ... Additional arguments passed to [usethis::create_package()].
 #'
 #' @return Invisibly returns `NULL`.
@@ -32,6 +35,7 @@ bootstrapper <- function(
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
   setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE,
   ...
 ) {
   create_package(fields, ...)
@@ -40,7 +44,8 @@ bootstrapper <- function(
     setup_dependabot = setup_dependabot,
     setup_AGENTS = setup_AGENTS,
     setup_precommit = setup_precommit,
-    setup_touchstone = setup_touchstone
+    setup_touchstone = setup_touchstone,
+    setup_touchstone_plots = setup_touchstone_plots
   )
   invisible(NULL)
 }
@@ -80,7 +85,8 @@ pkg_setup <- function(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
-  setup_touchstone = FALSE
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE
 ) {
   tryCatch(
     usethis::use_testthat(),
@@ -113,7 +119,7 @@ pkg_setup <- function(
     setup_precommit()
   }
   if (setup_touchstone) {
-    setup_touchstone()
+    setup_touchstone(setup_touchstone_plots)
   }
 
   # cleanup
@@ -243,13 +249,15 @@ setup_precommit <- function() {
 #' Write a modified Touchstone GHA to benchmark PRs. You still
 #' need to write an appropriate `script.R` for the actual
 #' benchmarks. This version of the touchstone commenting GHA
-#' updates a single comment instead of making multiple, and also
-#' adds the touchstone plots in a dropdown. These are stored on a new
-#' branch.
+#' updates a single comment instead of making multiple. Optionally
+#' also adds the touchstone plots in a dropdown--these plots are
+#' stored on a new branch.
+#'
+#' @param plots Whether to use the workflow which writes touchstone plots (and needs more permissions).
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
-setup_touchstone <- function() {
+setup_touchstone <- function(plots = FALSE) {
   # nocov start
   if (!requireNamespace("touchstone", quietly = TRUE)) {
     stop(
@@ -260,10 +268,17 @@ setup_touchstone <- function() {
   }
   # nocov end
   suppressWarnings(touchstone::use_touchstone())
-  copy_template_file(
-    "touchstone-comment.yaml",
-    fs::path(".github", "workflows", "touchstone-comment.yaml")
-  )
+  if (plots) {
+    copy_template_file(
+      "touchstone-comment-plots.yaml",
+      fs::path(".github", "workflows", "touchstone-comment.yaml")
+    )
+  } else {
+    copy_template_file(
+      "touchstone-comment-minimal.yaml",
+      fs::path(".github", "workflows", "touchstone-comment.yaml")
+    )
+  }
   copy_template_file(
     "touchstone-receive.yaml",
     fs::path(".github", "workflows", "touchstone-receive.yaml")

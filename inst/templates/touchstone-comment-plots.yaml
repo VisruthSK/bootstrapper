@@ -1,13 +1,13 @@
 name: Continuous Benchmarks (Comment)
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref }}
+  group: ${{ github.workflow }}-${{ github.run_id }}
   cancel-in-progress: true
 
 on:
   workflow_run:
-    workflows: [ "Continuous Benchmarks (Receive)" ]
-    types: [ completed ]
+    workflows: ["Continuous Benchmarks (Receive)"]
+    types: [completed]
 
 jobs:
   comment:
@@ -93,3 +93,4 @@ jobs:
           number_force: ${{ steps.pr.outputs.number }}
           header: touchstone
           path: ./comment.txt
+          skip_unchanged: true

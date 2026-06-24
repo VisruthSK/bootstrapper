@@ -13,7 +13,8 @@ test_that("bootstrapper orchestrates package creation and setup", {
       setup_dependabot,
       setup_AGENTS,
       setup_precommit,
-      setup_touchstone
+      setup_touchstone,
+      setup_touchstone_plots
     ) {
       calls <<- c(calls, "pkg_setup")
       expect_false(setup_gha)
@@ -21,6 +22,7 @@ test_that("bootstrapper orchestrates package creation and setup", {
       expect_false(setup_AGENTS)
       expect_false(setup_precommit)
       expect_false(setup_touchstone)
+      expect_false(setup_touchstone_plots)
       NULL
     },
     .package = "bootstrapper"
