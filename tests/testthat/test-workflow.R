@@ -54,7 +54,7 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
           c(
             "name: format-suggest",
             "steps:",
-            "  - uses: actions/checkout@v4"
+            "  - uses: actions/checkout@v7"
           ),
           fs::path(".github", "workflows", "format-suggest.yaml")
         )
