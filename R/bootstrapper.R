@@ -14,7 +14,6 @@
 #' @param setup_touchstone_plots Whether to use the Touchstone comment workflow
 #'   that publishes benchmark plots to a separate branch. Only used when
 #'   `setup_touchstone = TRUE`.
-#' @param ... Additional arguments passed to [usethis::create_package()].
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
@@ -27,8 +26,7 @@ bootstrapper <- function(
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
   setup_touchstone = FALSE,
-  setup_touchstone_plots = FALSE,
-  ...
+  setup_touchstone_plots = FALSE
 ) {
   create_package(fields)
   pkg_setup(
@@ -171,7 +169,8 @@ setup_formatter <- function(
 #' Create a Package and Connect GitHub
 #'
 #' Create a package in root, prompts for a license, cleans
-#' up build ignore file.
+#' up build ignore file. Essentially a slightly opinionated
+#' wrapper around [usethis::create_package()].
 #'
 #' @inheritParams bootstrapper
 #' @return Invisibly returns `NULL`.

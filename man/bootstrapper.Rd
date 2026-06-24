@@ -13,8 +13,7 @@ bootstrapper(
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
   setup_touchstone = FALSE,
-  setup_touchstone_plots = FALSE,
-  ...
+  setup_touchstone_plots = FALSE
 )
 }
 \arguments{
@@ -38,8 +37,6 @@ bootstrapper(
 \item{setup_touchstone_plots}{Whether to use the Touchstone comment workflow
 that publishes benchmark plots to a separate branch. Only used when
 \code{setup_touchstone = TRUE}.}
-
-\item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }
 \value{
 Invisibly returns \code{NULL}.
