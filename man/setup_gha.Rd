@@ -11,5 +11,5 @@ Invisibly returns \code{NULL}.
 }
 \description{
 Sets up standard GitHub Actions used by this package template and updates
-workflow references.
+workflow references. DOES NOT setup formatting, that is owned by \code{\link[=setup_formatter]{setup_formatter()}}.
 }

@@ -2,23 +2,26 @@ test_that("bootstrapper orchestrates package creation and setup", {
   calls <- character()
 
   testthat::local_mocked_bindings(
-    create_package = function(fields, ...) {
+    create_package = function(fields) {
       calls <<- c(calls, "create_package")
       expect_identical(fields, list(name = "value"))
-      expect_identical(list(...), list(open = FALSE))
       NULL
     },
     pkg_setup = function(
       setup_gha,
       setup_dependabot,
       setup_AGENTS,
-      setup_precommit
+      setup_precommit,
+      setup_air,
+      setup_jarl
     ) {
       calls <<- c(calls, "pkg_setup")
       expect_false(setup_gha)
       expect_false(setup_dependabot)
       expect_false(setup_AGENTS)
       expect_false(setup_precommit)
+      expect_false(setup_air)
+      expect_false(setup_jarl)
       NULL
     },
     .package = "bootstrapper"
@@ -30,7 +33,8 @@ test_that("bootstrapper orchestrates package creation and setup", {
       setup_gha = FALSE,
       setup_dependabot = FALSE,
       setup_precommit = FALSE,
-      open = FALSE
+      setup_air = FALSE,
+      setup_jarl = FALSE
     )
   )
   expect_identical(calls, c("create_package", "pkg_setup"))
@@ -52,8 +56,8 @@ test_that("create_package delegates to usethis and cleans local files", {
   seen <- list()
 
   testthat::local_mocked_bindings(
-    create_package = function(path, fields, ...) {
-      seen$create <<- list(path = path, fields = fields, dots = list(...))
+    create_package = function(path, fields) {
+      seen$create <<- list(path = path, fields = fields)
       NULL
     },
     .package = "usethis"
@@ -68,17 +72,16 @@ test_that("create_package delegates to usethis and cleans local files", {
   )
 
   expect_null(
-    bootstrapper::create_package(
-      fields = fields,
-      open = FALSE
-    )
+    bootstrapper::create_package(fields = fields)
   )
 
   expect_identical(seen$create$path, ".")
   expect_identical(seen$create$fields, fields)
-  expect_identical(seen$create$dots, list(open = FALSE))
-  expect_false(file.exists("pkg.Rproj"))
-  expect_identical(readLines(".Rbuildignore", warn = FALSE), "keep")
+  expect_true(file.exists("pkg.Rproj"))
+  expect_identical(
+    readLines(".Rbuildignore", warn = FALSE),
+    c("^.*\\.Rproj$", "^\\.Rproj\\.user$", "keep")
+  )
   expect_true(isTRUE(seen$license))
 })
 
@@ -131,8 +134,8 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
       expect_true(fixed)
       NULL
     },
-    try_air_jarl_format = function() {
-      calls$formatted <<- TRUE
+    setup_formatter = function(air, jarl) {
+      calls$formatted <<- c(air = air, jarl = jarl)
       NULL
     },
     .package = "bootstrapper"
@@ -154,7 +157,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
   expect_true("tidy_description" %in% calls$actions)
   expect_identical(calls$sections, c("gha", "dependabot", "precommit"))
   expect_true(calls$replaced)
-  expect_true(calls$formatted)
+  expect_identical(calls$formatted, c(air = TRUE, jarl = TRUE))
 })
 
 test_that("pkg_setup skips optional sections when disabled", {
@@ -187,8 +190,8 @@ test_that("pkg_setup skips optional sections when disabled", {
       NULL
     },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
-    try_air_jarl_format = function() {
-      formatted <<- TRUE
+    setup_formatter = function(air, jarl) {
+      formatted <<- all(c(air, jarl))
       NULL
     },
     .package = "bootstrapper"
@@ -233,7 +236,8 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
       NULL
     },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
-    try_air_jarl_format = function() NULL,
+    setup_precommit = function() NULL,
+    setup_formatter = function(air, jarl) NULL,
     .package = "bootstrapper"
   )
 
@@ -259,7 +263,6 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
     replacements = character(),
     workflow_replacements = character(),
     spell = FALSE,
-    air = FALSE,
     writes = character()
   )
 
@@ -271,10 +274,6 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
     use_pkgdown_github_pages = function() NULL,
     use_spell_check = function(error = FALSE) {
       actions$spell <<- error
-      NULL
-    },
-    use_air = function() {
-      actions$air <<- TRUE
       NULL
     },
     .package = "usethis"
@@ -295,28 +294,19 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
       )
       NULL
     },
-    copy_template_file = function(template_file, destination) {
-      actions$writes <<- c(actions$writes, destination)
-      expect_true(template_file %in% c("extensions.json", "jarl.toml"))
-      NULL
-    },
     .package = "bootstrapper"
   )
 
   expect_null(setup_gha())
-  expect_length(actions$github_actions, 3)
+  expect_length(actions$github_actions, 2)
   expect_identical(actions$github_actions[[1]][[1]], "check-standard")
   expect_true(isTRUE(actions$github_actions[[1]]$badge))
   expect_identical(actions$github_actions[[2]][[1]], "test-coverage")
-  expect_identical(
-    actions$github_actions[[3]]$url,
-    "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
-  )
   expect_true(actions$spell)
   expect_identical(
     actions$replacements,
     c(
-      "actions/checkout@v4 -> actions/checkout@v6",
+      "actions/checkout@v4 -> actions/checkout@v7",
       "actions/upload-artifact@v4 -> actions/upload-artifact@v7",
       "JamesIves/github-pages-deploy-action@v4.5.0 -> JamesIves/github-pages-deploy-action@v4"
     )
@@ -339,11 +329,6 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
         sep = " -> "
       )
     )
-  )
-  expect_true(actions$air)
-  expect_setequal(
-    basename(actions$writes),
-    c("extensions.json", "jarl.toml")
   )
 })
 
@@ -433,7 +418,7 @@ test_that("setup_precommit writes a bash hook and marks it executable", {
   expect_identical(captured$chmod$mode, "0755")
 })
 
-test_that("cleanup_buildignore removes Rproj entries and empty lines", {
+test_that("cleanup_buildignore removes empty lines", {
   tmp <- tempfile("bootstrapper-buildignore-")
   dir.create(tmp)
   old <- setwd(tmp)
@@ -450,7 +435,10 @@ test_that("cleanup_buildignore removes Rproj entries and empty lines", {
   )
 
   expect_null(cleanup_buildignore())
-  expect_identical(readLines(".Rbuildignore", warn = FALSE), "keep-this")
+  expect_identical(
+    readLines(".Rbuildignore", warn = FALSE),
+    c("^.*\\.Rproj$", "^\\.Rproj\\.user$", "keep-this")
+  )
 })
 
 test_that("cleanup_buildignore keeps unrelated entries", {
@@ -492,21 +480,18 @@ test_that("pkg_setup rethrows a generic message when test setup fails", {
 test_that("use_license warns and returns NULL in non-interactive mode", {
   messages <- character()
 
-  testthat::local_mocked_bindings(
-    is_interactive = function() FALSE,
-    .package = "bootstrapper"
-  )
+  withr::local_options(list(bootstrapper.interactive = FALSE))
 
   testthat::local_mocked_bindings(
-    ui_info = function(message, ...) {
+    cli_inform = function(message, ...) {
       messages <<- c(messages, message)
       NULL
     },
-    ui_warn = function(message, ...) {
+    cli_warn = function(message, ...) {
       messages <<- c(messages, message)
       NULL
     },
-    .package = "usethis"
+    .package = "cli"
   )
 
   expect_null(bootstrapper::use_license())
@@ -518,10 +503,7 @@ test_that("use_license applies selected license in interactive mode", {
   used_mit <- FALSE
   warned <- FALSE
 
-  testthat::local_mocked_bindings(
-    is_interactive = function() TRUE,
-    .package = "bootstrapper"
-  )
+  withr::local_options(list(bootstrapper.interactive = TRUE))
 
   testthat::local_mocked_bindings(
     menu = function(choices, title = NULL, graphics = FALSE) {
@@ -533,11 +515,15 @@ test_that("use_license applies selected license in interactive mode", {
   )
 
   testthat::local_mocked_bindings(
-    ui_info = function(message, ...) NULL,
-    ui_warn = function(message, ...) {
+    cli_inform = function(message, ...) NULL,
+    cli_warn = function(message, ...) {
       warned <<- TRUE
       NULL
     },
+    .package = "cli"
+  )
+
+  testthat::local_mocked_bindings(
     use_mit_license = function(...) {
       used_mit <<- TRUE
       NULL
@@ -566,10 +552,7 @@ test_that("use_license dispatches all remaining license helpers", {
     "Proprietary" = "use_proprietary_license"
   )
 
-  testthat::local_mocked_bindings(
-    is_interactive = function() TRUE,
-    .package = "bootstrapper"
-  )
+  withr::local_options(list(bootstrapper.interactive = TRUE))
 
   testthat::local_mocked_bindings(
     menu = function(choices, title = NULL, graphics = FALSE) {
@@ -579,8 +562,12 @@ test_that("use_license dispatches all remaining license helpers", {
   )
 
   testthat::local_mocked_bindings(
-    ui_info = function(message, ...) NULL,
-    ui_warn = function(message, ...) NULL,
+    cli_inform = function(message, ...) NULL,
+    cli_warn = function(message, ...) NULL,
+    .package = "cli"
+  )
+
+  testthat::local_mocked_bindings(
     use_mit_license = function(...) {
       called <<- c(called, "use_mit_license")
       NULL
@@ -637,11 +624,6 @@ test_that("use_license dispatches all remaining license helpers", {
   }
 })
 
-test_that("is_interactive mirrors base interactive", {
-  is_interactive <- getFromNamespace("is_interactive", "bootstrapper")
-  expect_identical(is_interactive(), interactive())
-})
-
 test_that("copy_template_file creates parent directories and copies content", {
   tmp <- tempfile("bootstrapper-template-copy-")
   dir.create(tmp)
@@ -665,8 +647,207 @@ test_that("copy_template_file creates parent directories and copies content", {
   )
 })
 
-test_that("try_air_jarl_format runs both commands and returns status", {
-  try_air_jarl_format <- getFromNamespace("try_air_jarl_format", "bootstrapper")
+test_that("setup_formatter configures air and jarl together", {
+  calls <- character()
+
+  testthat::local_mocked_bindings(
+    use_air = function() {
+      calls <<- c(calls, "use_air")
+      NULL
+    },
+    use_github_action = function(url) {
+      calls <<- c(calls, paste("use_github_action", url))
+      NULL
+    },
+    use_build_ignore = function(path, ...) {
+      calls <<- c(calls, paste("build_ignore", path))
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      calls <<- c(calls, paste("copy", template_file, destination))
+      NULL
+    },
+    silent_system2 = function(command, args = character(), ...) {
+      calls <<- c(calls, paste(command, paste(args, collapse = " ")))
+      TRUE
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(bootstrapper::setup_formatter())
+  expect_identical(
+    calls,
+    c(
+      "use_air",
+      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
+      "air format .",
+      "copy jarl.toml jarl.toml",
+      "build_ignore jarl.toml",
+      "jarl check . --fix --allow-dirty",
+      "use_github_action https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
+    )
+  )
+})
+
+test_that("setup_formatter configures jarl without air", {
+  calls <- character()
+
+  testthat::local_mocked_bindings(
+    use_build_ignore = function(path, ...) {
+      calls <<- c(calls, paste("build_ignore", path))
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      calls <<- c(calls, paste("copy", template_file, destination))
+      NULL
+    },
+    silent_system2 = function(command, args = character(), ...) {
+      calls <<- c(calls, paste(command, paste(args, collapse = " ")))
+      TRUE
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(bootstrapper::setup_formatter(air = FALSE, jarl = TRUE))
+  expect_identical(
+    calls,
+    c(
+      "copy jarl.toml jarl.toml",
+      "build_ignore jarl.toml",
+      "jarl check . --fix --allow-dirty",
+      paste(
+        "copy",
+        "jarl.yaml",
+        fs::path(".github", "workflows", "format-suggest.yaml")
+      )
+    )
+  )
+})
+
+test_that("setup_formatter configures air without jarl", {
+  calls <- character()
+
+  testthat::local_mocked_bindings(
+    use_air = function() {
+      calls <<- c(calls, "use_air")
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      calls <<- c(calls, paste("copy", template_file, destination))
+      NULL
+    },
+    silent_system2 = function(command, args = character(), ...) {
+      calls <<- c(calls, paste(command, paste(args, collapse = " ")))
+      TRUE
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(bootstrapper::setup_formatter(air = TRUE, jarl = FALSE))
+  expect_identical(
+    calls,
+    c(
+      "use_air",
+      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
+      "air format .",
+      paste(
+        "copy",
+        "air.yaml",
+        fs::path(".github", "workflows", "format-suggest.yaml")
+      )
+    )
+  )
+})
+
+test_that("setup_formatter can skip format commands", {
+  calls <- character()
+
+  testthat::local_mocked_bindings(
+    use_air = function() {
+      calls <<- c(calls, "use_air")
+      NULL
+    },
+    use_github_action = function(url) {
+      calls <<- c(calls, paste("use_github_action", url))
+      NULL
+    },
+    use_build_ignore = function(path, ...) {
+      calls <<- c(calls, paste("build_ignore", path))
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      calls <<- c(calls, paste("copy", template_file, destination))
+      NULL
+    },
+    silent_system2 = function(...) {
+      calls <<- c(calls, "format")
+      TRUE
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(bootstrapper::setup_formatter(format = FALSE))
+  expect_identical(
+    calls,
+    c(
+      "use_air",
+      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
+      "copy jarl.toml jarl.toml",
+      "build_ignore jarl.toml",
+      "use_github_action https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
+    )
+  )
+})
+
+test_that("setup_formatter does nothing when both formatters are disabled", {
+  called <- FALSE
+
+  testthat::local_mocked_bindings(
+    use_air = function() {
+      called <<- TRUE
+      NULL
+    },
+    use_github_action = function(...) {
+      called <<- TRUE
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(...) {
+      called <<- TRUE
+      NULL
+    },
+    silent_system2 = function(...) {
+      called <<- TRUE
+      TRUE
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(bootstrapper::setup_formatter(air = FALSE, jarl = FALSE))
+  expect_false(called)
+})
+
+test_that("silent_system2 runs requested command and returns status", {
+  silent_system2 <- getFromNamespace("silent_system2", "bootstrapper")
   commands <- character()
 
   testthat::local_mocked_bindings(
@@ -677,17 +858,14 @@ test_that("try_air_jarl_format runs both commands and returns status", {
     .package = "base"
   )
 
-  status <- try_air_jarl_format()
+  status <- silent_system2("air", c("format", "."))
 
-  expect_identical(
-    commands,
-    c("air format .", "jarl check . --fix --allow-dirty")
-  )
-  expect_identical(status, c(air = TRUE, jarl = TRUE))
+  expect_identical(commands, "air format .")
+  expect_true(status)
 })
 
-test_that("try_air_jarl_format marks failed commands as FALSE", {
-  try_air_jarl_format <- getFromNamespace("try_air_jarl_format", "bootstrapper")
+test_that("silent_system2 marks failed commands as FALSE", {
+  silent_system2 <- getFromNamespace("silent_system2", "bootstrapper")
 
   testthat::local_mocked_bindings(
     system2 = function(command, args, stdout = FALSE, stderr = FALSE, ...) {
@@ -696,8 +874,8 @@ test_that("try_air_jarl_format marks failed commands as FALSE", {
     .package = "base"
   )
 
-  status <- try_air_jarl_format()
-  expect_identical(status, c(air = FALSE, jarl = FALSE))
+  status <- silent_system2("air", c("format", "."))
+  expect_false(status)
 })
 
 test_that("file helpers create directories and replace text", {
@@ -746,9 +924,9 @@ test_that("file helpers create directories and replace text", {
     "uses: actions/checkout@v4",
     fs::path(".github", "workflows", "check.yml")
   )
-  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
+  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v7")
   expect_match(
     readLines(fs::path(".github", "workflows", "check.yml")),
-    "checkout@v6"
+    "checkout@v7"
   )
 })

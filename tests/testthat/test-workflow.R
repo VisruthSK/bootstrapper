@@ -13,10 +13,9 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
   state$action_calls <- list()
 
   testthat::local_mocked_bindings(
-    create_package = function(path, fields, ...) {
+    create_package = function(path, fields) {
       expect_identical(path, ".")
       expect_identical(fields, list("Package" = pkg))
-      expect_identical(list(...), list(open = FALSE))
 
       writeLines(
         c("^.*\\.Rproj$", "^\\.Rproj\\.user$", "README\\.Rmd"),
@@ -116,9 +115,6 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
       writeLines("MIT License", "LICENSE.md")
       NULL
     },
-    try_air_jarl_format = function() {
-      invisible(c(air = TRUE, jarl = TRUE))
-    },
     .package = "bootstrapper"
   )
 
@@ -133,8 +129,7 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
   expect_null(
     bootstrapper::bootstrapper(
       fields = fields,
-      setup_AGENTS = setup_AGENTS,
-      open = FALSE
+      setup_AGENTS = setup_AGENTS
     )
   )
 
@@ -174,7 +169,7 @@ snapshot_workflow_files <- function(fixture, files) {
 test_that("workflow step: create_package creates git-backed package skeleton", {
   fixture <- run_workflow_fixture()
 
-  expect_false(file.exists(file_in_pkg(fixture, "demoPkg.Rproj")))
+  expect_true(file.exists(file_in_pkg(fixture, "demoPkg.Rproj")))
 
   old <- setwd(fixture$pkg_path)
   on.exit(setwd(old), add = TRUE)
@@ -230,7 +225,7 @@ test_that("workflow step: setup templates are copied to expected locations", {
     c(
       ".github/dependabot.yml",
       "AGENTS.md",
-      "tests/jarl.toml",
+      "jarl.toml",
       ".vscode/extensions.json"
     )
   )

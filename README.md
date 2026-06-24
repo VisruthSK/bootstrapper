@@ -17,7 +17,7 @@ pak::pak("VisruthSK/bootstrapper")
 
 ## Usage
 
-The package is optimized for my usage by default, so calling the main function bare is not advised unless you are me. You should call it in a directory which is already tracked by git and already has GitHub as a remote.
+You should call the main function in a directory which is already tracked by git and already has GitHub as a remote.
 
 ```r
 bootstrapper::bootstrapper()
@@ -40,4 +40,4 @@ bootstrapper::bootstrapper(
 )
 ```
 
-There are some flags you can set to flip on/off certain features like publishing the repository as private/public on GitHub, copying over some GitHub Actions, using Dependabot for GHA, an `AGENTS.md` file, and a precommit hook for `air` and `jarl` formatting. 
+There are some flags you can set to flip on/off certain features like publishing the repository as private/public on GitHub, copying over some GitHub Actions, using Dependabot for GHA, an `AGENTS.md` file, and a precommit hook for `air` and `jarl` formatting.

@@ -97,13 +97,33 @@ find_replace_in_gha <- function(from, to) {
   )
 }
 
-#' Determine Interactive Mode
+#' Run a System Command Silently
 #'
-#' Wrapper around [base::interactive()] to make interactive branches testable.
+#' Runs [base::system2()] with warnings, standard output, and standard error
+#' suppressed.
 #'
-#' @return A single logical value.
-#' @keywords internal
+#' @param command Command to run.
+#' @param args Character vector of command arguments.
+#' @param ... Additional arguments passed to [base::system2()].
+#'
+#' @return Invisibly returns `TRUE` if the command exits with status 0, otherwise
+#'   invisibly returns `FALSE`.
+#' @keywords
 #' @noRd
-is_interactive <- function() {
-  interactive()
+silent_system2 <- function(command, args = character(), ...) {
+  suppressWarnings(
+    tryCatch(
+      {
+        system2(
+          command = command,
+          args = args,
+          stdout = FALSE,
+          stderr = FALSE
+        ) |>
+          identical(0L) |>
+          invisible()
+      },
+      error = \(...) invisible(FALSE)
+    )
+  )
 }

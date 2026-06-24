@@ -8,60 +8,33 @@
 #' @param setup_dependabot Whether to write a Dependabot configuration.
 #' @param setup_AGENTS Whether to write a default AGENTS file.
 #' @param setup_precommit Whether to write a Bash pre-commit hook.
-#' @param ... Additional arguments passed to [usethis::create_package()].
+#' @param setup_air Whether to configure Air formatting.
+#' @param setup_jarl Whether to configure Jarl linting.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
 bootstrapper <- function(
-  fields = getOption(
-    "usethis.description",
-    list(
-      "Authors@R" = person(
-        "Visruth",
-        "Srimath Kandali",
-        ,
-        "public@visruth.com",
-        role = c("aut", "cre", "cph"),
-        comment = c(ORCID = "0009-0005-9097-0688")
-      )
-    )
-  ),
+  fields = getOption("usethis.description"),
   setup_gha = TRUE,
+  setup_air = TRUE,
+  setup_jarl = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE,
-  ...
+  setup_precommit = TRUE
 ) {
-  create_package(fields, ...)
+  create_package(fields)
   pkg_setup(
     setup_gha = setup_gha,
     setup_dependabot = setup_dependabot,
     setup_AGENTS = setup_AGENTS,
-    setup_precommit = setup_precommit
+    setup_precommit = setup_precommit,
+    setup_air = setup_air,
+    setup_jarl = setup_jarl
   )
   invisible(NULL)
 }
 
-#' Create a Package and Connect GitHub
-#'
-#' Create a package in root, prompts for a license, cleans
-#' up build ignore file.
-#'
-#' @inheritParams bootstrapper
-#' @return Invisibly returns `NULL`.
-#' @export
-create_package <- function(
-  fields = getOption("usethis.description"),
-  ...
-) {
-  usethis::create_package(path = ".", fields = fields, ...)
-  unlink("*.Rproj")
-  use_license()
-  cleanup_buildignore()
-  invisible(NULL)
-}
-
-#' Apply Opinionated Package Setup
+#' Opinionated Package Setup
 #'
 #' Run the package setup steps used by `bootstrapper`, including test
 #' infrastructure, README/NEWS creation, GitHub Actions, and linting defaults.
@@ -71,6 +44,8 @@ create_package <- function(
 #' @param setup_dependabot Whether to write a Dependabot configuration.
 #' @param setup_AGENTS Whether to write a default AGENTS file.
 #' @param setup_precommit Whether to write a Bash pre-commit hook.
+#' @param setup_air Whether to configure Air formatting.
+#' @param setup_jarl Whether to configure Jarl linting.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
@@ -78,13 +53,15 @@ pkg_setup <- function(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE
+  setup_precommit = TRUE,
+  setup_air = TRUE,
+  setup_jarl = TRUE
 ) {
   tryCatch(
     usethis::use_testthat(),
     error = function(...) {
-      usethis::ui_stop(
-        "This doesn't appear to be a package. Ensure you are in the right directory, or run {usethis::ui_code('create_package()')} in this directory to start a R package."
+      cli::cli_abort(
+        "This doesn't appear to be a package. Ensure you are in the right directory, or run {.code create_package()} in this directory to start an R package."
       )
     }
   )
@@ -110,9 +87,9 @@ pkg_setup <- function(
   if (setup_precommit) {
     setup_precommit()
   }
+  setup_formatter(setup_air, setup_jarl)
 
   # cleanup
-  try_air_jarl_format()
   usethis::use_tidy_description()
   cleanup_buildignore()
   spelling::update_wordlist(confirm = FALSE)
@@ -120,48 +97,76 @@ pkg_setup <- function(
   invisible(NULL)
 }
 
+#' Configure Formatter Defaults
+#'
+#' Sets up Air and/or Jarl formatting defaults. Optionally
+#' format the repository once.
+#'
+#' @param air Whether to configure Air formatting.
+#' @param jarl Whether to configure Jarl linting.
+#' @param format Whether to format the repository after configuring tools.
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
+setup_formatter <- function(air = TRUE, jarl = TRUE, format = TRUE) {
+  if (air) {
+    usethis::use_air()
+    copy_template_file(
+      "extensions.json",
+      fs::path(".vscode", "extensions.json")
+    )
+    if (format) {
+      silent_system2("air", c("format", "."))
+    }
+  }
+  if (jarl) {
+    copy_template_file("jarl.toml", "jarl.toml")
+    usethis::use_build_ignore("jarl.toml")
+    if (format) {
+      silent_system2("jarl", c("check", ".", "--fix", "--allow-dirty"))
+    }
+  }
+
+  if (air && jarl) {
+    usethis::use_github_action(
+      url = "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
+    )
+  } else if (air) {
+    copy_template_file(
+      "air.yaml",
+      fs::path(".github", "workflows", "format-suggest.yaml")
+    )
+  } else if (jarl) {
+    copy_template_file(
+      "jarl.yaml",
+      fs::path(".github", "workflows", "format-suggest.yaml")
+    )
+  }
+
+  invisible(NULL)
+}
+
 # Helpers ---------------------------------------------------------------------
 
-#' Try Air/Jarl Formatting
+#' Create a Package and Connect GitHub
 #'
-#' Attempts to run `air format .` and `jarl check . --fix --allow-dirty`.
-#' Errors and warnings are ignored so setup can continue if tools are unavailable.
+#' Create a package in root, prompts for a license, cleans
+#' up build ignore file.
 #'
-#' @return Invisibly returns a named logical vector indicating whether each
-#'   check succeeded.
-#' @keywords internal
-#' @noRd
-try_air_jarl_format <- function() {
-  air <- suppressWarnings(
-    tryCatch(
-      {
-        system2("air", c("format", "."), stdout = FALSE, stderr = FALSE)
-        TRUE
-      },
-      error = function(...) FALSE
-    )
-  )
-  jarl <- suppressWarnings(
-    tryCatch(
-      {
-        system2(
-          "jarl",
-          c("check", ".", "--fix", "--allow-dirty"),
-          stdout = FALSE,
-          stderr = FALSE
-        )
-        TRUE
-      },
-      error = function(...) FALSE
-    )
-  )
-  invisible(c(air = air, jarl = jarl))
+#' @inheritParams bootstrapper
+#' @return Invisibly returns `NULL`.
+#' @export
+create_package <- function(fields = getOption("usethis.description")) {
+  usethis::create_package(path = ".", fields = fields)
+  use_license()
+  cleanup_buildignore()
+  invisible(NULL)
 }
 
 #' Configure GitHub Actions Defaults
 #'
 #' Sets up standard GitHub Actions used by this package template and updates
-#' workflow references.
+#' workflow references. DOES NOT setup formatting, that is owned by [setup_formatter()].
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
@@ -179,13 +184,10 @@ setup_gha <- function() {
     "permissions:\n  contents: read\n  id-token: write",
     fs::path(".github", "workflows", "test-coverage.yaml")
   )
-  usethis::use_github_action(
-    url = "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
-  )
   usethis::use_pkgdown_github_pages()
   usethis::use_spell_check(error = TRUE)
 
-  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
+  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v7")
   find_replace_in_gha(
     "actions/upload-artifact@v4",
     "actions/upload-artifact@v7"
@@ -194,10 +196,6 @@ setup_gha <- function() {
     "JamesIves/github-pages-deploy-action@v4.5.0",
     "JamesIves/github-pages-deploy-action@v4"
   )
-
-  usethis::use_air()
-  copy_template_file("extensions.json", fs::path(".vscode", "extensions.json"))
-  copy_template_file("jarl.toml", fs::path("tests", "jarl.toml")) # TODO: need to make GHA jarl runs respect this
 }
 
 #' Configure Dependabot Defaults
@@ -233,10 +231,9 @@ setup_precommit <- function() {
   invisible(NULL)
 }
 
-#' Remove RStudio Project Ignore Entries
+#' Remove empty lines
 #'
-#' Removes default RStudio project ignore patterns from `.Rbuildignore` and
-#' drops empty lines.
+#' Drops empty lines in `.Rbuildignore`.
 #'
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
@@ -245,18 +242,6 @@ cleanup_buildignore <- function() {
   if (!file.exists(".Rbuildignore")) {
     return(invisible(NULL))
   }
-  find_replace_in_file(
-    "^\\^.*\\\\\\.Rproj\\$$",
-    "",
-    ".Rbuildignore",
-    fixed = FALSE
-  )
-  find_replace_in_file(
-    "^\\^\\\\\\.Rproj\\\\\\.user\\$$",
-    "",
-    ".Rbuildignore",
-    fixed = FALSE
-  )
   readLines(".Rbuildignore", warn = FALSE) |>
     Filter(nzchar, x = _) |>
     writeLines(".Rbuildignore")
@@ -285,8 +270,10 @@ use_license <- function() {
     "Proprietary" = "use_proprietary_license",
     "Skip for now" = FALSE
   )
-  usethis::ui_info("Select a license for this package.")
-  selected_fn <- if (is_interactive()) {
+  cli::cli_inform("Select a license for this package.")
+  selected_fn <- if (
+    isTRUE(getOption("bootstrapper.interactive", interactive()))
+  ) {
     unname(
       license_choices[[utils::menu(
         choices = names(license_choices),
@@ -312,6 +299,6 @@ use_license <- function() {
       use_proprietary_license = usethis::use_proprietary_license()
     )
   } else {
-    usethis::ui_warn("No license selected; leaving current license unchanged.")
+    cli::cli_warn("No license selected; leaving current license unchanged.")
   }
 }
