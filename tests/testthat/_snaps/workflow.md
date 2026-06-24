@@ -15,6 +15,7 @@
       [10] "NEWS.md"                              
       [11] "README.md"                            
       [12] "air.toml"                             
-      [13] "tests/jarl.toml"                      
-      [14] "tests/testthat.R"                     
+      [13] "demoPkg.Rproj"                        
+      [14] "jarl.toml"                            
+      [15] "tests/testthat.R"                     
 
