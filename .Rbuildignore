@@ -7,3 +7,5 @@
 ^LICENSE\.md$
 ^AGENTS\.md$
 ^touchstone$
+^tests/testthat/[.]github$
+^tests/testthat/touchstone$
