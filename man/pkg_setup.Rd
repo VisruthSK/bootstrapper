@@ -9,7 +9,7 @@ pkg_setup(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
-  setup_touchstone = TRUE
+  setup_touchstone = FALSE
 )
 }
 \arguments{
@@ -20,6 +20,8 @@ pkg_setup(
 \item{setup_AGENTS}{Whether to write a default AGENTS file.}
 
 \item{setup_precommit}{Whether to write a Bash pre-commit hook.}
+
+\item{setup_touchstone}{Whether to setup Touchstone benchmarking.}
 }
 \value{
 Invisibly returns \code{NULL}.

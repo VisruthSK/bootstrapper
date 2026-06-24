@@ -12,13 +12,15 @@ test_that("bootstrapper orchestrates package creation and setup", {
       setup_gha,
       setup_dependabot,
       setup_AGENTS,
-      setup_precommit
+      setup_precommit,
+      setup_touchstone
     ) {
       calls <<- c(calls, "pkg_setup")
       expect_false(setup_gha)
       expect_false(setup_dependabot)
       expect_false(setup_AGENTS)
       expect_false(setup_precommit)
+      expect_false(setup_touchstone)
       NULL
     },
     .package = "bootstrapper"
@@ -146,7 +148,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
     .package = "spelling"
   )
 
-  expect_null(bootstrapper::pkg_setup())
+  expect_null(bootstrapper::pkg_setup(setup_touchstone = FALSE))
 
   expect_true("testthat" %in% calls$actions)
   expect_true("readme:FALSE" %in% calls$actions)
@@ -207,7 +209,8 @@ test_that("pkg_setup skips optional sections when disabled", {
       setup_gha = FALSE,
       setup_dependabot = FALSE,
       setup_AGENTS = FALSE,
-      setup_precommit = FALSE
+      setup_precommit = FALSE,
+      setup_touchstone = FALSE
     )
   )
   expect_false(called)
@@ -247,7 +250,8 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
 
   expect_null(bootstrapper::pkg_setup(
     setup_AGENTS = TRUE,
-    setup_precommit = FALSE
+    setup_precommit = FALSE,
+    setup_touchstone = FALSE
   ))
   expect_true(called)
 })
@@ -431,6 +435,43 @@ test_that("setup_precommit writes a bash hook and marks it executable", {
     fs::path(".git", "hooks", "pre-commit")
   )
   expect_identical(captured$chmod$mode, "0755")
+})
+
+test_that("setup_touchstone requires touchstone", {
+  if (requireNamespace("touchstone", quietly = TRUE)) {
+    testthat::skip("{touchstone} is installed")
+  }
+  setup_touchstone <- getFromNamespace("setup_touchstone", "bootstrapper")
+
+  expect_error(
+    setup_touchstone(),
+    "Package 'touchstone' is required"
+  )
+})
+
+test_that("setup_touchstone creates touchstone files", {
+  testthat::skip_if_not_installed("touchstone")
+  setup_touchstone <- getFromNamespace("setup_touchstone", "bootstrapper")
+  tmp <- tempfile("bootstrapper-touchstone-")
+  dir.create(tmp)
+  old <- setwd(tmp)
+  on.exit(setwd(old), add = TRUE)
+
+  writeLines("Package: demoPkg", "DESCRIPTION")
+  fs::dir_create(".github")
+
+  expect_null(setup_touchstone())
+  expect_true(file.exists(fs::path(
+    ".github",
+    "workflows",
+    "touchstone-receive.yaml"
+  )))
+  expect_true(file.exists(fs::path(
+    ".github",
+    "workflows",
+    "touchstone-comment.yaml"
+  )))
+  expect_true(file.exists(fs::path("touchstone", "config.json")))
 })
 
 test_that("cleanup_buildignore removes Rproj entries and empty lines", {

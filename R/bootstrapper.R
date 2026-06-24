@@ -8,6 +8,7 @@
 #' @param setup_dependabot Whether to write a Dependabot configuration.
 #' @param setup_AGENTS Whether to write a default AGENTS file.
 #' @param setup_precommit Whether to write a Bash pre-commit hook.
+#' @param setup_touchstone Whether to setup Touchstone benchmarking.
 #' @param ... Additional arguments passed to [usethis::create_package()].
 #'
 #' @return Invisibly returns `NULL`.
@@ -30,6 +31,7 @@ bootstrapper <- function(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
+  setup_touchstone = FALSE,
   ...
 ) {
   create_package(fields, ...)
@@ -37,7 +39,8 @@ bootstrapper <- function(
     setup_gha = setup_gha,
     setup_dependabot = setup_dependabot,
     setup_AGENTS = setup_AGENTS,
-    setup_precommit = setup_precommit
+    setup_precommit = setup_precommit,
+    setup_touchstone = setup_touchstone
   )
   invisible(NULL)
 }
@@ -48,6 +51,7 @@ bootstrapper <- function(
 #' up build ignore file.
 #'
 #' @inheritParams bootstrapper
+#'
 #' @return Invisibly returns `NULL`.
 #' @export
 create_package <- function(
@@ -67,10 +71,7 @@ create_package <- function(
 #' infrastructure, README/NEWS creation, GitHub Actions, and linting defaults.
 #' Run this in the root directory of your package.
 #'
-#' @param setup_gha Whether to configure GitHub Actions setup.
-#' @param setup_dependabot Whether to write a Dependabot configuration.
-#' @param setup_AGENTS Whether to write a default AGENTS file.
-#' @param setup_precommit Whether to write a Bash pre-commit hook.
+#' @inheritParams bootstrapper
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
@@ -79,7 +80,7 @@ pkg_setup <- function(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
-  setup_touchstone = TRUE
+  setup_touchstone = FALSE
 ) {
   tryCatch(
     usethis::use_testthat(),
@@ -249,6 +250,13 @@ setup_precommit <- function() {
 #' @return Invisibly returns `NULL`.
 #' @export
 setup_touchstone <- function() {
+  if (!requireNamespace("touchstone", quietly = TRUE)) {
+    stop(
+      "Package 'touchstone' is required to set up Touchstone. ",
+      "Install it with pak::pak('lorenzwalthert/touchstone').",
+      call. = FALSE
+    )
+  }
   suppressWarnings(touchstone::use_touchstone())
   copy_template_file(
     "touchstone-comment.yaml",

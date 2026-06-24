@@ -12,6 +12,7 @@ bootstrapper(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
+  setup_touchstone = FALSE,
   ...
 )
 }
@@ -26,6 +27,8 @@ bootstrapper(
 \item{setup_AGENTS}{Whether to write a default AGENTS file.}
 
 \item{setup_precommit}{Whether to write a Bash pre-commit hook.}
+
+\item{setup_touchstone}{Whether to setup Touchstone benchmarking.}
 
 \item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }

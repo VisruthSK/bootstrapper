@@ -1,3 +1,2 @@
 README\.Rmd
 AGENTS.md
-^touchstone$

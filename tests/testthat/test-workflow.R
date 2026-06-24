@@ -1,4 +1,7 @@
-run_workflow_fixture <- function(setup_AGENTS = TRUE) {
+run_workflow_fixture <- function(
+  setup_AGENTS = TRUE,
+  setup_touchstone = FALSE
+) {
   tmp <- tempfile("bootstrapper-workflow-")
   dir.create(tmp)
   pkg <- "demoPkg"
@@ -134,6 +137,7 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
     bootstrapper::bootstrapper(
       fields = fields,
       setup_AGENTS = setup_AGENTS,
+      setup_touchstone = setup_touchstone,
       open = FALSE
     )
   )
@@ -218,6 +222,24 @@ test_that("workflow step: setup_gha writes and rewrites workflow files", {
       ".github/workflows/check-standard.yaml",
       ".github/workflows/test-coverage.yaml",
       ".github/workflows/format-suggest.yaml"
+    )
+  )
+})
+
+test_that("workflow step: setup_touchstone writes touchstone files", {
+  testthat::skip_if_not_installed("touchstone")
+  fixture <- run_workflow_fixture(setup_touchstone = TRUE)
+
+  snapshot_workflow_files(
+    fixture,
+    c(
+      ".github/workflows/touchstone-comment.yaml",
+      ".github/workflows/touchstone-receive.yaml",
+      "touchstone/.gitignore",
+      "touchstone/config.json",
+      "touchstone/footer.R",
+      "touchstone/header.R",
+      "touchstone/script.R"
     )
   )
 })
