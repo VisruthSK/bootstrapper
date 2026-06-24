@@ -262,6 +262,10 @@ setup_touchstone <- function() {
     "touchstone-comment.yaml",
     fs::path(".github", "workflows", "touchstone-comment.yaml")
   )
+  copy_template_file(
+    "touchstone-script.R",
+    fs::path("touchstone", "script.R")
+  )
 }
 
 #' Remove RStudio Project Ignore Entries
