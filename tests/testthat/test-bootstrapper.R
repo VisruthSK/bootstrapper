@@ -316,7 +316,7 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
   expect_identical(
     actions$replacements,
     c(
-      "actions/checkout@v4 -> actions/checkout@v6",
+      "actions/checkout@v4 -> actions/checkout@v7",
       "actions/upload-artifact@v4 -> actions/upload-artifact@v7",
       "JamesIves/github-pages-deploy-action@v4.5.0 -> JamesIves/github-pages-deploy-action@v4"
     )
@@ -746,9 +746,9 @@ test_that("file helpers create directories and replace text", {
     "uses: actions/checkout@v4",
     fs::path(".github", "workflows", "check.yml")
   )
-  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
+  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v7")
   expect_match(
     readLines(fs::path(".github", "workflows", "check.yml")),
-    "checkout@v6"
+    "checkout@v7"
   )
 })
