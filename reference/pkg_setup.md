@@ -1,4 +1,4 @@
-# Apply Opinionated Package Setup
+# Opinionated Package Setup
 
 Run the package setup steps used by `bootstrapper`, including test
 infrastructure, README/NEWS creation, GitHub Actions, and linting
@@ -11,7 +11,9 @@ pkg_setup(
   setup_gha = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE
+  setup_precommit = TRUE,
+  setup_air = TRUE,
+  setup_jarl = TRUE
 )
 ```
 
@@ -32,6 +34,14 @@ pkg_setup(
 - setup_precommit:
 
   Whether to write a Bash pre-commit hook.
+
+- setup_air:
+
+  Whether to configure Air formatting.
+
+- setup_jarl:
+
+  Whether to configure Jarl linting.
 
 ## Value
 

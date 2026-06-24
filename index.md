@@ -15,10 +15,8 @@ pak::pak("VisruthSK/bootstrapper")
 
 ## Usage
 
-The package is optimized for my usage by default, so calling the main
-function bare is not advised unless you are me. You should call it in a
-directory which is already tracked by git and already has GitHub as a
-remote.
+You should call the main function in a directory which is already
+tracked by git and already has GitHub as a remote.
 
 ``` r
 

@@ -2,6 +2,7 @@
 
 - Read DESCRIPTION, README
 - Red/green TDD
+- Make clean, elegant, idiomatic changes. Always read documentation.
 
 # Personality
 

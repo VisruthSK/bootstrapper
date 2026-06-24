@@ -6,7 +6,7 @@ file.
 ## Usage
 
 ``` r
-create_package(fields = getOption("usethis.description"), ...)
+create_package(fields = getOption("usethis.description"))
 ```
 
 ## Arguments
@@ -17,11 +17,6 @@ create_package(fields = getOption("usethis.description"), ...)
   [`usethis::create_package()`](https://usethis.r-lib.org/reference/create_package.html).
   See
   [`usethis::use_description()`](https://usethis.r-lib.org/reference/use_description.html)
-
-- ...:
-
-  Additional arguments passed to
-  [`usethis::create_package()`](https://usethis.r-lib.org/reference/create_package.html).
 
 ## Value
 
