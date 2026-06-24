@@ -250,6 +250,7 @@ setup_precommit <- function() {
 #' @return Invisibly returns `NULL`.
 #' @export
 setup_touchstone <- function() {
+  # nocov start
   if (!requireNamespace("touchstone", quietly = TRUE)) {
     stop(
       "Package 'touchstone' is required to set up Touchstone. ",
@@ -257,6 +258,7 @@ setup_touchstone <- function() {
       call. = FALSE
     )
   }
+  # nocov end
   suppressWarnings(touchstone::use_touchstone())
   copy_template_file(
     "touchstone-comment.yaml",
