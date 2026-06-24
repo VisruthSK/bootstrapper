@@ -185,7 +185,7 @@ setup_gha <- function() {
   usethis::use_pkgdown_github_pages()
   usethis::use_spell_check(error = TRUE)
 
-  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v6")
+  find_replace_in_gha("actions/checkout@v4", "actions/checkout@v7")
   find_replace_in_gha(
     "actions/upload-artifact@v4",
     "actions/upload-artifact@v7"
