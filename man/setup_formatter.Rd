@@ -4,7 +4,7 @@
 \alias{setup_formatter}
 \title{Configure Formatter Defaults}
 \usage{
-setup_formatter(air = TRUE, jarl = TRUE, format = TRUE)
+setup_formatter(air = TRUE, jarl = TRUE, format = TRUE, gha = TRUE)
 }
 \arguments{
 \item{air}{Whether to configure Air formatting.}
@@ -12,6 +12,8 @@ setup_formatter(air = TRUE, jarl = TRUE, format = TRUE)
 \item{jarl}{Whether to configure Jarl linting.}
 
 \item{format}{Whether to format the repository after configuring tools.}
+
+\item{gha}{Whether to create the appropriate GHA for automatic formatting on PRs.}
 }
 \value{
 Invisibly returns \code{NULL}.
