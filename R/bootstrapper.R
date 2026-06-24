@@ -10,6 +10,10 @@
 #' @param setup_precommit Whether to write a Bash pre-commit hook.
 #' @param setup_air Whether to configure Air formatting.
 #' @param setup_jarl Whether to configure Jarl linting.
+#' @param setup_touchstone Whether to setup Touchstone benchmarking.
+#' @param setup_touchstone_plots Whether to use the Touchstone comment workflow
+#'   that publishes benchmark plots to a separate branch. Only used when
+#'   `setup_touchstone = TRUE`.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
@@ -20,7 +24,9 @@ bootstrapper <- function(
   setup_jarl = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE
+  setup_precommit = TRUE,
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE
 ) {
   create_package(fields)
   pkg_setup(
@@ -28,6 +34,8 @@ bootstrapper <- function(
     setup_dependabot = setup_dependabot,
     setup_AGENTS = setup_AGENTS,
     setup_precommit = setup_precommit,
+    setup_touchstone = setup_touchstone,
+    setup_touchstone_plots = setup_touchstone_plots,
     setup_air = setup_air,
     setup_jarl = setup_jarl
   )
@@ -40,12 +48,7 @@ bootstrapper <- function(
 #' infrastructure, README/NEWS creation, GitHub Actions, and linting defaults.
 #' Run this in the root directory of your package.
 #'
-#' @param setup_gha Whether to configure GitHub Actions setup.
-#' @param setup_dependabot Whether to write a Dependabot configuration.
-#' @param setup_AGENTS Whether to write a default AGENTS file.
-#' @param setup_precommit Whether to write a Bash pre-commit hook.
-#' @param setup_air Whether to configure Air formatting.
-#' @param setup_jarl Whether to configure Jarl linting.
+#' @inheritParams bootstrapper
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
@@ -54,6 +57,8 @@ pkg_setup <- function(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE,
   setup_air = TRUE,
   setup_jarl = TRUE
 ) {
@@ -86,6 +91,9 @@ pkg_setup <- function(
   }
   if (setup_precommit) {
     setup_precommit()
+  }
+  if (setup_touchstone) {
+    setup_touchstone(setup_touchstone_plots)
   }
   setup_formatter(
     air = setup_air,
@@ -161,7 +169,8 @@ setup_formatter <- function(
 #' Create a Package and Connect GitHub
 #'
 #' Create a package in root, prompts for a license, cleans
-#' up build ignore file.
+#' up build ignore file. Essentially a slightly opinionated
+#' wrapper around [usethis::create_package()].
 #'
 #' @inheritParams bootstrapper
 #' @return Invisibly returns `NULL`.
@@ -241,7 +250,56 @@ setup_precommit <- function() {
   invisible(NULL)
 }
 
-#' Remove empty lines
+#' Configure Touchstone
+#'
+#' Write a modified Touchstone GHA to benchmark PRs. You still
+#' need to write an appropriate `script.R` for the actual
+#' benchmarks. This version of the touchstone commenting GHA
+#' updates a single comment instead of making multiple. Optionally
+#' also adds the touchstone plots in a dropdown--these plots are
+#' stored on a new branch.
+#'
+#' @param plots Whether to use the workflow which writes touchstone plots (and needs more permissions).
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
+setup_touchstone <- function(plots = FALSE) {
+  # nocov start
+  if (!requireNamespace("touchstone", quietly = TRUE)) {
+    stop(
+      "Package 'touchstone' is required to set up Touchstone. ",
+      "Install it with pak::pak('lorenzwalthert/touchstone').",
+      call. = FALSE
+    )
+  }
+  # nocov end
+  suppressWarnings(touchstone::use_touchstone())
+  if (plots) {
+    copy_template_file(
+      "touchstone-comment-plots.yaml",
+      fs::path(".github", "workflows", "touchstone-comment.yaml")
+    )
+  } else {
+    copy_template_file(
+      "touchstone-comment-minimal.yaml",
+      fs::path(".github", "workflows", "touchstone-comment.yaml")
+    )
+  }
+  copy_template_file(
+    "touchstone-receive.yaml",
+    fs::path(".github", "workflows", "touchstone-receive.yaml")
+  )
+  copy_template_file(
+    "touchstone-script.R",
+    fs::path("touchstone", "script.R")
+  )
+  copy_template_file(
+    "touchstone-config.json",
+    fs::path("touchstone", "config.json")
+  )
+}
+
+#' Remove RStudio Project Ignore Entries
 #'
 #' Drops empty lines in `.Rbuildignore`.
 #'

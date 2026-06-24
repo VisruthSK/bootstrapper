@@ -11,7 +11,9 @@ bootstrapper(
   setup_jarl = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE
+  setup_precommit = TRUE,
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE
 )
 }
 \arguments{
@@ -29,6 +31,12 @@ bootstrapper(
 \item{setup_AGENTS}{Whether to write a default AGENTS file.}
 
 \item{setup_precommit}{Whether to write a Bash pre-commit hook.}
+
+\item{setup_touchstone}{Whether to setup Touchstone benchmarking.}
+
+\item{setup_touchstone_plots}{Whether to use the Touchstone comment workflow
+that publishes benchmark plots to a separate branch. Only used when
+\code{setup_touchstone = TRUE}.}
 }
 \value{
 Invisibly returns \code{NULL}.

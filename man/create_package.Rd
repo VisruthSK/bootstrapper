@@ -15,5 +15,6 @@ Invisibly returns \code{NULL}.
 }
 \description{
 Create a package in root, prompts for a license, cleans
-up build ignore file.
+up build ignore file. Essentially a slightly opinionated
+wrapper around \code{\link[usethis:create_package]{usethis::create_package()}}.
 }

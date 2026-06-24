@@ -9,6 +9,8 @@ pkg_setup(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE,
   setup_air = TRUE,
   setup_jarl = TRUE
 )
@@ -21,6 +23,12 @@ pkg_setup(
 \item{setup_AGENTS}{Whether to write a default AGENTS file.}
 
 \item{setup_precommit}{Whether to write a Bash pre-commit hook.}
+
+\item{setup_touchstone}{Whether to setup Touchstone benchmarking.}
+
+\item{setup_touchstone_plots}{Whether to use the Touchstone comment workflow
+that publishes benchmark plots to a separate branch. Only used when
+\code{setup_touchstone = TRUE}.}
 
 \item{setup_air}{Whether to configure Air formatting.}
 

@@ -1,4 +1,8 @@
-run_workflow_fixture <- function(setup_AGENTS = TRUE) {
+run_workflow_fixture <- function(
+  setup_AGENTS = TRUE,
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE
+) {
   tmp <- tempfile("bootstrapper-workflow-")
   dir.create(tmp)
   pkg <- "demoPkg"
@@ -12,8 +16,8 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
   state <- new.env(parent = emptyenv())
   state$action_calls <- list()
 
-  testthat::local_mocked_bindings(
-    create_package = function(path, fields) {
+  local_mocked_bindings(
+    create_package = function(path, fields, ...) {
       expect_identical(path, ".")
       expect_identical(fields, list("Package" = pkg))
 
@@ -29,7 +33,7 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
     use_testthat = function() {
       fs::dir_create(fs::path("tests", "testthat"))
       writeLines(
-        "testthat::test_check(\"demoPkg\")",
+        "test_check(\"demoPkg\")",
         fs::path("tests", "testthat.R")
       )
       NULL
@@ -110,7 +114,7 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
     .package = "usethis"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_license = function() {
       writeLines("MIT License", "LICENSE.md")
       NULL
@@ -118,7 +122,7 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     update_wordlist = function(confirm = FALSE) {
       expect_false(confirm)
       NULL
@@ -129,7 +133,9 @@ run_workflow_fixture <- function(setup_AGENTS = TRUE) {
   expect_null(
     bootstrapper::bootstrapper(
       fields = fields,
-      setup_AGENTS = setup_AGENTS
+      setup_AGENTS = setup_AGENTS,
+      setup_touchstone = setup_touchstone,
+      setup_touchstone_plots = setup_touchstone_plots
     )
   )
 
@@ -160,7 +166,7 @@ snapshot_workflow_files <- function(fixture, files) {
     expect_true(file.exists(file_in_pkg(fixture, f)), info = f)
     expect_snapshot_file(
       file_in_pkg(fixture, f),
-      compare = testthat::compare_file_text,
+      compare = compare_file_text,
       name = snapshot_name_from_path(f)
     )
   }
@@ -211,6 +217,121 @@ test_that("workflow step: setup_gha writes and rewrites workflow files", {
       ".github/workflows/test-coverage.yaml",
       ".github/workflows/format-suggest.yaml"
     )
+  )
+})
+
+test_that("workflow step: setup_touchstone writes minimal touchstone files by default", {
+  skip_if_not_installed("touchstone")
+  fixture <- run_workflow_fixture(setup_touchstone = TRUE)
+
+  snapshot_workflow_files(
+    fixture,
+    c(
+      ".github/workflows/touchstone-comment.yaml",
+      ".github/workflows/touchstone-receive.yaml",
+      "touchstone/.gitignore",
+      "touchstone/config.json",
+      "touchstone/footer.R",
+      "touchstone/header.R",
+      "touchstone/script.R"
+    )
+  )
+
+  comment_workflow <- paste(
+    readLines(
+      file_in_pkg(fixture, ".github", "workflows", "touchstone-comment.yaml"),
+      warn = FALSE
+    ),
+    collapse = "\n"
+  )
+
+  expect_match(comment_workflow, "actions: read", fixed = TRUE)
+  expect_match(comment_workflow, "pull-requests: write", fixed = TRUE)
+  expect_match(comment_workflow, "path: ./pr/info.txt", fixed = TRUE)
+  expect_match(comment_workflow, "skip_unchanged: true", fixed = TRUE)
+
+  expect_no_match(comment_workflow, "contents: write", fixed = TRUE)
+  expect_no_match(comment_workflow, "actions/checkout", fixed = TRUE)
+  expect_no_match(comment_workflow, "visual-benchmarks", fixed = TRUE)
+  expect_no_match(comment_workflow, "touchstone-plots", fixed = TRUE)
+  expect_no_match(comment_workflow, "github-pages-deploy-action", fixed = TRUE)
+  expect_no_match(comment_workflow, "path: ./comment.txt", fixed = TRUE)
+})
+
+test_that("workflow step: setup_touchstone can write plots comment workflow", {
+  skip_if_not_installed("touchstone")
+
+  fixture <- run_workflow_fixture(
+    setup_touchstone = TRUE,
+    setup_touchstone_plots = TRUE
+  )
+
+  comment_workflow <- paste(
+    readLines(
+      file_in_pkg(fixture, ".github", "workflows", "touchstone-comment.yaml"),
+      warn = FALSE
+    ),
+    collapse = "\n"
+  )
+
+  expect_match(comment_workflow, "actions: read", fixed = TRUE)
+  expect_match(comment_workflow, "contents: write", fixed = TRUE)
+  expect_match(comment_workflow, "pull-requests: write", fixed = TRUE)
+
+  expect_match(comment_workflow, "actions/checkout", fixed = TRUE)
+  expect_match(comment_workflow, "visual-benchmarks", fixed = TRUE)
+  expect_match(comment_workflow, "touchstone-plots", fixed = TRUE)
+  expect_match(comment_workflow, "github-pages-deploy-action", fixed = TRUE)
+  expect_match(comment_workflow, "path: ./comment.txt", fixed = TRUE)
+  expect_match(comment_workflow, "skip_unchanged: true", fixed = TRUE)
+})
+
+test_that("workflow step: setup_touchstone writes usable Touchstone config", {
+  skip_if_not_installed("touchstone")
+  skip_if_not_installed("jsonlite")
+
+  fixture <- run_workflow_fixture(setup_touchstone = TRUE)
+
+  config_path <- file_in_pkg(fixture, "touchstone", "config.json")
+  workflow_path <- file_in_pkg(
+    fixture,
+    ".github",
+    "workflows",
+    "touchstone-receive.yaml"
+  )
+
+  config_json <- paste(readLines(config_path, warn = FALSE), collapse = "\n")
+  expect_true(jsonlite::validate(config_json))
+
+  config <- jsonlite::fromJSON(config_json)
+
+  expect_setequal(names(config), c("os", "r", "rspm"))
+  expect_identical(config$os, "ubuntu-24.04")
+  expect_identical(config$r, "4.5.3")
+  expect_identical(
+    config$rspm,
+    "https://packagemanager.posit.co/cran/__linux__/noble/latest"
+  )
+
+  receive_workflow <- paste(
+    readLines(workflow_path, warn = FALSE),
+    collapse = "\n"
+  )
+
+  expect_match(
+    receive_workflow,
+    "runs-on: ${{ matrix.config.os }}",
+    fixed = TRUE
+  )
+  expect_match(
+    receive_workflow,
+    "RSPM: ${{ matrix.config.rspm }}",
+    fixed = TRUE
+  )
+  expect_match(
+    receive_workflow,
+    "r-version: ${{ matrix.config.r }}",
+    fixed = TRUE
   )
 })
 
