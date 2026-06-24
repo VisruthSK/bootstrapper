@@ -24,13 +24,17 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      # Required to push suggestion comments to the PR
+      contents: read
+      checks: write
+      issues: write
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Jarl format
         uses: etiennebacher/setup-jarl@v0.1.1
