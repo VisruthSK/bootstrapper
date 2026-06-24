@@ -4,13 +4,11 @@
 \alias{create_package}
 \title{Create a Package and Connect GitHub}
 \usage{
-create_package(fields = getOption("usethis.description"), ...)
+create_package(fields = getOption("usethis.description"))
 }
 \arguments{
 \item{fields}{Named list of \code{DESCRIPTION} fields passed to
 \code{\link[usethis:create_package]{usethis::create_package()}}. See \code{\link[usethis:use_description]{usethis::use_description()}}}
-
-\item{...}{Additional arguments passed to \code{\link[usethis:create_package]{usethis::create_package()}}.}
 }
 \value{
 Invisibly returns \code{NULL}.

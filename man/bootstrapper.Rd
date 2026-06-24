@@ -5,10 +5,10 @@
 \title{Bootstrap a New R Package}
 \usage{
 bootstrapper(
-  fields = getOption("usethis.description", list(`Authors@R` = person("Visruth",
-    "Srimath Kandali", , "public@visruth.com", role = c("aut", "cre", "cph"), comment =
-    c(ORCID = "0009-0005-9097-0688")))),
+  fields = getOption("usethis.description"),
   setup_gha = TRUE,
+  setup_air = TRUE,
+  setup_jarl = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
@@ -22,6 +22,10 @@ bootstrapper(
 \code{\link[usethis:create_package]{usethis::create_package()}}. See \code{\link[usethis:use_description]{usethis::use_description()}}}
 
 \item{setup_gha}{Whether to configure GitHub Actions setup.}
+
+\item{setup_air}{Whether to configure Air formatting.}
+
+\item{setup_jarl}{Whether to configure Jarl linting.}
 
 \item{setup_dependabot}{Whether to write a Dependabot configuration.}
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bootstrapper.R
 \name{pkg_setup}
 \alias{pkg_setup}
-\title{Apply Opinionated Package Setup}
+\title{Opinionated Package Setup}
 \usage{
 pkg_setup(
   setup_gha = TRUE,
@@ -10,7 +10,9 @@ pkg_setup(
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
   setup_touchstone = FALSE,
-  setup_touchstone_plots = FALSE
+  setup_touchstone_plots = FALSE,
+  setup_air = TRUE,
+  setup_jarl = TRUE
 )
 }
 \arguments{
@@ -27,6 +29,10 @@ pkg_setup(
 \item{setup_touchstone_plots}{Whether to use the Touchstone comment workflow
 that publishes benchmark plots to a separate branch. Only used when
 \code{setup_touchstone = TRUE}.}
+
+\item{setup_air}{Whether to configure Air formatting.}
+
+\item{setup_jarl}{Whether to configure Jarl linting.}
 }
 \value{
 Invisibly returns \code{NULL}.

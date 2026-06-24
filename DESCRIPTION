@@ -13,6 +13,7 @@ URL: https://bootstrapper.visruth.com/
 Depends: 
     R (>= 4.2.0)
 Imports: 
+    cli,
     fs,
     spelling,
     usethis,
@@ -20,7 +21,8 @@ Imports:
 Suggests:
     jsonlite,
     testthat (>= 3.0.0),
-    touchstone
+    touchstone,
+    withr
 Remotes: 
     lorenzwalthert/touchstone
 Config/roxygen2/version: 8.0.0

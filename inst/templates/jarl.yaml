@@ -36,20 +36,14 @@ jobs:
           allow-unsafe-pr-checkout: true
           persist-credentials: false
 
-      - name: Install
-        uses: posit-dev/setup-air@v1
-
       - name: Jarl format
         uses: etiennebacher/setup-jarl@v0.1.1
         with:
           args: "check --fix"
-
-      - name: Format
-        run: air format .
 
       - name: Suggest
         uses: reviewdog/action-suggester@v1
         with:
           level: error
           fail_level: error
-          tool_name: air+jarl
+          tool_name: jarl

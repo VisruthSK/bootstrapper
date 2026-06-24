@@ -3,6 +3,7 @@
 ^docs$
 ^pkgdown$
 ^[.]?air[.]toml$
+^jarl[.]toml$
 ^\.vscode$
 ^LICENSE\.md$
 ^AGENTS\.md$
