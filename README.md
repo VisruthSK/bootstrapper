@@ -5,11 +5,20 @@
 [![Codecov test coverage](https://codecov.io/gh/VisruthSK/bootstrapper/graph/badge.svg)](https://app.codecov.io/gh/VisruthSK/bootstrapper)
 <!-- badges: end -->
 
-The goal of bootstrapper is to quickly setup a modern R package with appropriate actions and assorted setup. Mostly for my own usage, pretty opinionated.
+The goal of `bootstrapper` is to quickly setup a modern R package with appropriate actions and assorted setup. The package is more opinionated than `usethis`, and conforms to some practices which I believe are good. `bootstrapper` exposes a few helpers which may be useful for existing packages to use to adopt certain policies, such as using `air` or `touchstone`. 
 
 ## Installation
 
-You can install the development version of bootstrapper like so:
+You can install the latest release of `bootstrapper` from the multiverse:
+
+```r
+install.packages(
+  "bootstrapper",
+  repos = c("https://community.r-multiverse.org", getOption("repos"))
+)
+```
+
+You can install the development version like so:
 
 ``` r
 pak::pak("VisruthSK/bootstrapper")
