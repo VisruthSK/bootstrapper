@@ -18,5 +18,7 @@
   : Configure GitHub Actions Defaults
 - [`setup_precommit()`](https://bootstrapper.visruth.com/reference/setup_precommit.md)
   : Configure Pre-Commit Hook
+- [`setup_touchstone()`](https://bootstrapper.visruth.com/reference/setup_touchstone.md)
+  : Configure Touchstone
 - [`use_license()`](https://bootstrapper.visruth.com/reference/use_license.md)
   : Choose and Apply a License

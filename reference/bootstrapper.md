@@ -12,7 +12,9 @@ bootstrapper(
   setup_jarl = TRUE,
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
-  setup_precommit = TRUE
+  setup_precommit = TRUE,
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE
 )
 ```
 
@@ -48,6 +50,16 @@ bootstrapper(
 - setup_precommit:
 
   Whether to write a Bash pre-commit hook.
+
+- setup_touchstone:
+
+  Whether to setup Touchstone benchmarking.
+
+- setup_touchstone_plots:
+
+  Whether to use the Touchstone comment workflow that publishes
+  benchmark plots to a separate branch. Only used when
+  `setup_touchstone = TRUE`.
 
 ## Value
 

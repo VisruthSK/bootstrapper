@@ -1,7 +1,8 @@
 # Create a Package and Connect GitHub
 
 Create a package in root, prompts for a license, cleans up build ignore
-file.
+file. Essentially a slightly opinionated wrapper around
+[`usethis::create_package()`](https://usethis.r-lib.org/reference/create_package.html).
 
 ## Usage
 

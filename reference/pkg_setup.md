@@ -12,6 +12,8 @@ pkg_setup(
   setup_dependabot = TRUE,
   setup_AGENTS = FALSE,
   setup_precommit = TRUE,
+  setup_touchstone = FALSE,
+  setup_touchstone_plots = FALSE,
   setup_air = TRUE,
   setup_jarl = TRUE
 )
@@ -34,6 +36,16 @@ pkg_setup(
 - setup_precommit:
 
   Whether to write a Bash pre-commit hook.
+
+- setup_touchstone:
+
+  Whether to setup Touchstone benchmarking.
+
+- setup_touchstone_plots:
+
+  Whether to use the Touchstone comment workflow that publishes
+  benchmark plots to a separate branch. Only used when
+  `setup_touchstone = TRUE`.
 
 - setup_air:
 
