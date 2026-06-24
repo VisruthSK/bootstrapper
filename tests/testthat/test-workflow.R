@@ -15,7 +15,7 @@ run_workflow_fixture <- function(
   state <- new.env(parent = emptyenv())
   state$action_calls <- list()
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     create_package = function(path, fields, ...) {
       expect_identical(path, ".")
       expect_identical(fields, list("Package" = pkg))
@@ -33,7 +33,7 @@ run_workflow_fixture <- function(
     use_testthat = function() {
       fs::dir_create(fs::path("tests", "testthat"))
       writeLines(
-        "testthat::test_check(\"demoPkg\")",
+        "test_check(\"demoPkg\")",
         fs::path("tests", "testthat.R")
       )
       NULL
@@ -114,7 +114,7 @@ run_workflow_fixture <- function(
     .package = "usethis"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_license = function() {
       writeLines("MIT License", "LICENSE.md")
       NULL
@@ -125,7 +125,7 @@ run_workflow_fixture <- function(
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     update_wordlist = function(confirm = FALSE) {
       expect_false(confirm)
       NULL
@@ -169,7 +169,7 @@ snapshot_workflow_files <- function(fixture, files) {
     expect_true(file.exists(file_in_pkg(fixture, f)), info = f)
     expect_snapshot_file(
       file_in_pkg(fixture, f),
-      compare = testthat::compare_file_text,
+      compare = compare_file_text,
       name = snapshot_name_from_path(f)
     )
   }
@@ -227,7 +227,7 @@ test_that("workflow step: setup_gha writes and rewrites workflow files", {
 })
 
 test_that("workflow step: setup_touchstone writes touchstone files", {
-  testthat::skip_if_not_installed("touchstone")
+  skip_if_not_installed("touchstone")
   fixture <- run_workflow_fixture(setup_touchstone = TRUE)
 
   snapshot_workflow_files(

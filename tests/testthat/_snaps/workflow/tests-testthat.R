@@ -1,1 +1,1 @@
-testthat::test_check("demoPkg")
+test_check("demoPkg")

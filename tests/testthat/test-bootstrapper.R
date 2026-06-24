@@ -1,7 +1,7 @@
 test_that("bootstrapper orchestrates package creation and setup", {
   calls <- character()
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     create_package = function(fields, ...) {
       calls <<- c(calls, "create_package")
       expect_identical(fields, list(name = "value"))
@@ -53,7 +53,7 @@ test_that("create_package delegates to usethis and cleans local files", {
   fields <- list("Authors@R" = utils::person("Jane", "Doe"))
   seen <- list()
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     create_package = function(path, fields, ...) {
       seen$create <<- list(path = path, fields = fields, dots = list(...))
       NULL
@@ -61,7 +61,7 @@ test_that("create_package delegates to usethis and cleans local files", {
     .package = "usethis"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_license = function() {
       seen$license <<- TRUE
       NULL
@@ -92,7 +92,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
     formatted = FALSE
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_testthat = function() {
       calls$actions <<- c(calls$actions, "testthat")
     },
@@ -108,7 +108,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
     .package = "usethis"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     setup_gha = function() {
       calls$sections <<- c(calls$sections, "gha")
       NULL
@@ -140,7 +140,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     update_wordlist = function(confirm = FALSE) {
       expect_false(confirm)
       NULL
@@ -163,7 +163,7 @@ test_that("pkg_setup skips optional sections when disabled", {
   called <- FALSE
   formatted <- FALSE
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_testthat = function() NULL,
     use_readme_md = function(open = FALSE) NULL,
     use_news_md = function(open = FALSE) NULL,
@@ -171,7 +171,7 @@ test_that("pkg_setup skips optional sections when disabled", {
     .package = "usethis"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     setup_gha = function() {
       called <<- TRUE
       NULL
@@ -196,7 +196,7 @@ test_that("pkg_setup skips optional sections when disabled", {
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     update_wordlist = function(confirm = FALSE) {
       expect_false(confirm)
       NULL
@@ -220,7 +220,7 @@ test_that("pkg_setup skips optional sections when disabled", {
 test_that("pkg_setup runs AGENTS setup when enabled", {
   called <- FALSE
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_testthat = function() NULL,
     use_readme_md = function(open = FALSE) NULL,
     use_news_md = function(open = FALSE) NULL,
@@ -228,7 +228,7 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
     .package = "usethis"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     setup_gha = function() NULL,
     setup_dependabot = function() NULL,
     setup_agents = function() {
@@ -240,7 +240,7 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     update_wordlist = function(confirm = FALSE) {
       expect_false(confirm)
       NULL
@@ -267,7 +267,7 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
     writes = character()
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_github_action = function(...) {
       actions$github_actions <<- c(actions$github_actions, list(list(...)))
       NULL
@@ -284,7 +284,7 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
     .package = "usethis"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     find_replace_in_gha = function(from, to) {
       actions$replacements <<- c(
         actions$replacements,
@@ -358,7 +358,7 @@ test_that("setup_dependabot copies dependabot template", {
   )
   captured <- list(template_file = NULL, destination = NULL)
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     copy_template_file = function(template_file, destination) {
       captured$template_file <<- template_file
       captured$destination <<- destination
@@ -380,7 +380,7 @@ test_that("setup_agents copies AGENTS template", {
     build_ignore = NULL
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     copy_template_file = function(template_file, destination) {
       captured$template_file <<- template_file
       captured$destination <<- destination
@@ -389,7 +389,7 @@ test_that("setup_agents copies AGENTS template", {
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_build_ignore = function(path, ...) {
       captured$build_ignore <<- path
       NULL
@@ -407,7 +407,7 @@ test_that("setup_precommit writes a bash hook and marks it executable", {
   setup_precommit <- getFromNamespace("setup_precommit", "bootstrapper")
   captured <- list(template_file = NULL, destination = NULL, chmod = NULL)
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     copy_template_file = function(template_file, destination) {
       captured$template_file <<- template_file
       captured$destination <<- destination
@@ -416,7 +416,7 @@ test_that("setup_precommit writes a bash hook and marks it executable", {
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     Sys.chmod = function(paths, mode = "0777", use_umask = TRUE) {
       captured$chmod <<- list(paths = paths, mode = mode)
       TRUE
@@ -439,8 +439,9 @@ test_that("setup_precommit writes a bash hook and marks it executable", {
 
 test_that("setup_touchstone requires touchstone", {
   if (requireNamespace("touchstone", quietly = TRUE)) {
-    testthat::skip("{touchstone} is installed")
+    skip("{touchstone} is installed")
   }
+
   setup_touchstone <- getFromNamespace("setup_touchstone", "bootstrapper")
 
   expect_error(
@@ -450,7 +451,7 @@ test_that("setup_touchstone requires touchstone", {
 })
 
 test_that("setup_touchstone creates touchstone files", {
-  testthat::skip_if_not_installed("touchstone")
+  skip_if_not_installed("touchstone")
   setup_touchstone <- getFromNamespace("setup_touchstone", "bootstrapper")
   tmp <- tempfile("bootstrapper-touchstone-")
   dir.create(tmp)
@@ -514,7 +515,7 @@ test_that("cleanup_buildignore keeps unrelated entries", {
 test_that("pkg_setup rethrows a generic message when test setup fails", {
   readme_called <- FALSE
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     use_testthat = function() stop("boom"),
     use_readme_md = function(open = FALSE) {
       readme_called <<- TRUE
@@ -533,12 +534,12 @@ test_that("pkg_setup rethrows a generic message when test setup fails", {
 test_that("use_license warns and returns NULL in non-interactive mode", {
   messages <- character()
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     is_interactive = function() FALSE,
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     ui_info = function(message, ...) {
       messages <<- c(messages, message)
       NULL
@@ -559,12 +560,12 @@ test_that("use_license applies selected license in interactive mode", {
   used_mit <- FALSE
   warned <- FALSE
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     is_interactive = function() TRUE,
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     menu = function(choices, title = NULL, graphics = FALSE) {
       expect_identical(title, "License")
       expect_true("MIT" %in% choices)
@@ -573,7 +574,7 @@ test_that("use_license applies selected license in interactive mode", {
     .package = "utils"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     ui_info = function(message, ...) NULL,
     ui_warn = function(message, ...) {
       warned <<- TRUE
@@ -607,19 +608,19 @@ test_that("use_license dispatches all remaining license helpers", {
     "Proprietary" = "use_proprietary_license"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     is_interactive = function() TRUE,
     .package = "bootstrapper"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     menu = function(choices, title = NULL, graphics = FALSE) {
       match(current_label, choices)
     },
     .package = "utils"
   )
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     ui_info = function(message, ...) NULL,
     ui_warn = function(message, ...) NULL,
     use_mit_license = function(...) {
@@ -710,7 +711,7 @@ test_that("try_air_jarl_format runs both commands and returns status", {
   try_air_jarl_format <- getFromNamespace("try_air_jarl_format", "bootstrapper")
   commands <- character()
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     system2 = function(command, args, stdout = FALSE, stderr = FALSE, ...) {
       commands <<- c(commands, paste(command, paste(args, collapse = " ")))
       0L
@@ -730,7 +731,7 @@ test_that("try_air_jarl_format runs both commands and returns status", {
 test_that("try_air_jarl_format marks failed commands as FALSE", {
   try_air_jarl_format <- getFromNamespace("try_air_jarl_format", "bootstrapper")
 
-  testthat::local_mocked_bindings(
+  local_mocked_bindings(
     system2 = function(command, args, stdout = FALSE, stderr = FALSE, ...) {
       stop("tool missing")
     },
