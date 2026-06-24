@@ -199,13 +199,10 @@ test_that("workflow step: pkg_setup creates core package files", {
 test_that("workflow step: setup_gha writes and rewrites workflow files", {
   fixture <- run_workflow_fixture()
 
-  expect_length(fixture$action_calls, 3)
+  expect_length(fixture$action_calls, 2)
   expect_identical(fixture$action_calls[[1]][[1]], "check-standard")
+  expect_true(isTRUE(fixture$action_calls[[1]]$badge))
   expect_identical(fixture$action_calls[[2]][[1]], "test-coverage")
-  expect_identical(
-    fixture$action_calls[[3]]$url,
-    "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
-  )
 
   snapshot_workflow_files(
     fixture,

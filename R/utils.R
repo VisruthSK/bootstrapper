@@ -118,7 +118,8 @@ silent_system2 <- function(command, args = character(), ...) {
           command = command,
           args = args,
           stdout = FALSE,
-          stderr = FALSE
+          stderr = FALSE,
+          ...
         ) |>
           identical(0L) |>
           invisible()

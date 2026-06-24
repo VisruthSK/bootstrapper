@@ -90,7 +90,7 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
     actions = character(),
     sections = character(),
     replaced = FALSE,
-    formatted = FALSE
+    formatted = NULL
   )
 
   testthat::local_mocked_bindings(
@@ -134,8 +134,13 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
       expect_true(fixed)
       NULL
     },
-    setup_formatter = function(air, jarl) {
-      calls$formatted <<- c(air = air, jarl = jarl)
+    setup_formatter = function(air, jarl, format, gha) {
+      calls$formatted <<- c(
+        air = air,
+        jarl = jarl,
+        format = format,
+        gha = gha
+      )
       NULL
     },
     .package = "bootstrapper"
@@ -157,12 +162,15 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
   expect_true("tidy_description" %in% calls$actions)
   expect_identical(calls$sections, c("gha", "dependabot", "precommit"))
   expect_true(calls$replaced)
-  expect_identical(calls$formatted, c(air = TRUE, jarl = TRUE))
+  expect_identical(
+    calls$formatted,
+    c(air = TRUE, jarl = TRUE, format = TRUE, gha = TRUE)
+  )
 })
 
 test_that("pkg_setup skips optional sections when disabled", {
   called <- FALSE
-  formatted <- FALSE
+  formatted <- NULL
 
   testthat::local_mocked_bindings(
     use_testthat = function() NULL,
@@ -190,8 +198,13 @@ test_that("pkg_setup skips optional sections when disabled", {
       NULL
     },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
-    setup_formatter = function(air, jarl) {
-      formatted <<- all(c(air, jarl))
+    setup_formatter = function(air, jarl, format, gha) {
+      formatted <<- c(
+        air = air,
+        jarl = jarl,
+        format = format,
+        gha = gha
+      )
       NULL
     },
     .package = "bootstrapper"
@@ -214,7 +227,10 @@ test_that("pkg_setup skips optional sections when disabled", {
     )
   )
   expect_false(called)
-  expect_true(formatted)
+  expect_identical(
+    formatted,
+    c(air = TRUE, jarl = TRUE, format = TRUE, gha = FALSE)
+  )
 })
 
 test_that("pkg_setup runs AGENTS setup when enabled", {
@@ -237,7 +253,7 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
     },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
     setup_precommit = function() NULL,
-    setup_formatter = function(air, jarl) NULL,
+    setup_formatter = function(air, jarl, format, gha) NULL,
     .package = "bootstrapper"
   )
 
@@ -655,10 +671,6 @@ test_that("setup_formatter configures air and jarl together", {
       calls <<- c(calls, "use_air")
       NULL
     },
-    use_github_action = function(url) {
-      calls <<- c(calls, paste("use_github_action", url))
-      NULL
-    },
     use_build_ignore = function(path, ...) {
       calls <<- c(calls, paste("build_ignore", path))
       NULL
@@ -688,7 +700,11 @@ test_that("setup_formatter configures air and jarl together", {
       "copy jarl.toml jarl.toml",
       "build_ignore jarl.toml",
       "jarl check . --fix --allow-dirty",
-      "use_github_action https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
+      paste(
+        "copy",
+        "format-suggest.yaml",
+        fs::path(".github", "workflows", "format-suggest.yaml")
+      )
     )
   )
 })
@@ -779,10 +795,6 @@ test_that("setup_formatter can skip format commands", {
       calls <<- c(calls, "use_air")
       NULL
     },
-    use_github_action = function(url) {
-      calls <<- c(calls, paste("use_github_action", url))
-      NULL
-    },
     use_build_ignore = function(path, ...) {
       calls <<- c(calls, paste("build_ignore", path))
       NULL
@@ -810,7 +822,11 @@ test_that("setup_formatter can skip format commands", {
       paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
       "copy jarl.toml jarl.toml",
       "build_ignore jarl.toml",
-      "use_github_action https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
+      paste(
+        "copy",
+        "format-suggest.yaml",
+        fs::path(".github", "workflows", "format-suggest.yaml")
+      )
     )
   )
 })
@@ -844,6 +860,52 @@ test_that("setup_formatter does nothing when both formatters are disabled", {
 
   expect_null(bootstrapper::setup_formatter(air = FALSE, jarl = FALSE))
   expect_false(called)
+})
+
+test_that("setup_formatter skips formatter workflow when gha is disabled", {
+  calls <- character()
+
+  testthat::local_mocked_bindings(
+    use_air = function() {
+      calls <<- c(calls, "use_air")
+      NULL
+    },
+    use_github_action = function(...) {
+      calls <<- c(calls, "use_github_action")
+      NULL
+    },
+    use_build_ignore = function(path, ...) {
+      calls <<- c(calls, paste("build_ignore", path))
+      NULL
+    },
+    .package = "usethis"
+  )
+
+  testthat::local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      calls <<- c(calls, paste("copy", template_file, destination))
+      NULL
+    },
+    silent_system2 = function(command, args = character(), ...) {
+      calls <<- c(calls, paste(command, paste(args, collapse = " ")))
+      TRUE
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(bootstrapper::setup_formatter(gha = FALSE))
+
+  expect_identical(
+    calls,
+    c(
+      "use_air",
+      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
+      "air format .",
+      "copy jarl.toml jarl.toml",
+      "build_ignore jarl.toml",
+      "jarl check . --fix --allow-dirty"
+    )
+  )
 })
 
 test_that("silent_system2 runs requested command and returns status", {

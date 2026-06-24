@@ -87,7 +87,12 @@ pkg_setup <- function(
   if (setup_precommit) {
     setup_precommit()
   }
-  setup_formatter(setup_air, setup_jarl)
+  setup_formatter(
+    air = setup_air,
+    jarl = setup_jarl,
+    format = TRUE,
+    gha = setup_gha
+  )
 
   # cleanup
   usethis::use_tidy_description()
@@ -105,10 +110,16 @@ pkg_setup <- function(
 #' @param air Whether to configure Air formatting.
 #' @param jarl Whether to configure Jarl linting.
 #' @param format Whether to format the repository after configuring tools.
+#' @param gha Whether to create the appropriate GHA for automatic formatting on PRs.
 #'
 #' @return Invisibly returns `NULL`.
 #' @export
-setup_formatter <- function(air = TRUE, jarl = TRUE, format = TRUE) {
+setup_formatter <- function(
+  air = TRUE,
+  jarl = TRUE,
+  format = TRUE,
+  gha = TRUE
+) {
   if (air) {
     usethis::use_air()
     copy_template_file(
@@ -127,18 +138,17 @@ setup_formatter <- function(air = TRUE, jarl = TRUE, format = TRUE) {
     }
   }
 
-  if (air && jarl) {
-    usethis::use_github_action(
-      url = "https://github.com/visruthsk/bootstrapper/blob/main/.github/workflows/format-suggest.yaml"
-    )
-  } else if (air) {
+  template <- switch(
+    paste(air, jarl),
+    "TRUE TRUE" = "format-suggest.yaml",
+    "TRUE FALSE" = "air.yaml",
+    "FALSE TRUE" = "jarl.yaml",
+    NULL
+  )
+
+  if (gha && !is.null(template)) {
     copy_template_file(
-      "air.yaml",
-      fs::path(".github", "workflows", "format-suggest.yaml")
-    )
-  } else if (jarl) {
-    copy_template_file(
-      "jarl.yaml",
+      template,
       fs::path(".github", "workflows", "format-suggest.yaml")
     )
   }
