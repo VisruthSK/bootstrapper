@@ -130,6 +130,10 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
       calls$sections <<- c(calls$sections, "precommit")
       NULL
     },
+    setup_gitattributes = function() {
+      calls$sections <<- c(calls$sections, "gitattributes")
+      NULL
+    },
     find_replace_in_file = function(from, to, file, fixed = TRUE) {
       calls$replaced <<- TRUE
       expect_identical(from, "(development version)")
@@ -164,7 +168,10 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
   expect_true("readme:FALSE" %in% calls$actions)
   expect_true("news:FALSE" %in% calls$actions)
   expect_true("tidy_description" %in% calls$actions)
-  expect_identical(calls$sections, c("gha", "dependabot", "precommit"))
+  expect_identical(
+    calls$sections,
+    c("gha", "dependabot", "precommit", "gitattributes")
+  )
   expect_true(calls$replaced)
   expect_identical(
     calls$formatted,
@@ -202,6 +209,7 @@ test_that("pkg_setup skips optional sections when disabled", {
       NULL
     },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
+    setup_gitattributes = function() NULL,
     setup_formatter = function(air, jarl, format, gha) {
       formatted <<- c(
         air = air,
@@ -258,6 +266,7 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
     },
     find_replace_in_file = function(from, to, file, fixed = TRUE) NULL,
     setup_precommit = function() NULL,
+    setup_gitattributes = function() NULL,
     setup_formatter = function(air, jarl, format, gha) NULL,
     .package = "bootstrapper"
   )
@@ -373,6 +382,24 @@ test_that("setup_dependabot copies dependabot template", {
   expect_null(setup_dependabot())
   expect_identical(captured$template_file, "dependabot.yml")
   expect_identical(captured$destination, fs::path(".github", "dependabot.yml"))
+})
+
+test_that("setup_gitattributes copies gitattributes template", {
+  setup_gitattributes <- getFromNamespace("setup_gitattributes", "bootstrapper")
+  captured <- list(template_file = NULL, destination = NULL)
+
+  local_mocked_bindings(
+    copy_template_file = function(template_file, destination) {
+      captured$template_file <<- template_file
+      captured$destination <<- destination
+      NULL
+    },
+    .package = "bootstrapper"
+  )
+
+  expect_null(setup_gitattributes())
+  expect_identical(captured$template_file, "gitattributes")
+  expect_identical(captured$destination, ".gitattributes")
 })
 
 test_that("setup_agents copies AGENTS template", {

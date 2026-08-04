@@ -103,6 +103,7 @@ pkg_setup <- function(
   )
 
   # cleanup
+  setup_gitattributes()
   usethis::use_tidy_description()
   cleanup_buildignore()
   spelling::update_wordlist(confirm = FALSE)
@@ -225,6 +226,16 @@ setup_gha <- function() {
 #' @export
 setup_dependabot <- function() {
   copy_template_file("dependabot.yml", fs::path(".github", "dependabot.yml"))
+}
+
+#' Configure Git Attributes
+#'
+#' Writes a default `.gitattributes`.
+#'
+#' @return Invisibly returns `NULL`.
+#' @export
+setup_gitattributes <- function() {
+  copy_template_file("gitattributes", ".gitattributes")
 }
 
 #' Configure AGENTS Defaults
