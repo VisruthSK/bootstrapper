@@ -16,6 +16,8 @@
   : Configure Formatter Defaults
 - [`setup_gha()`](https://bootstrapper.visruth.com/reference/setup_gha.md)
   : Configure GitHub Actions Defaults
+- [`setup_gitattributes()`](https://bootstrapper.visruth.com/reference/setup_gitattributes.md)
+  : Configure Git Attributes
 - [`setup_precommit()`](https://bootstrapper.visruth.com/reference/setup_precommit.md)
   : Configure Pre-Commit Hook
 - [`setup_touchstone()`](https://bootstrapper.visruth.com/reference/setup_touchstone.md)
