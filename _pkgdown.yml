@@ -1,5 +1,3 @@
 url: https://bootstrapper.visruth.com/
 template:
-  bootstrap: 5
-  bootswatch: lumen
-  light-switch: true
+  package: brand
