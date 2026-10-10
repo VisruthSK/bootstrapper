@@ -8,13 +8,13 @@
 ## Citation
 
 Srimath Kandali V (2026). *bootstrapper: Opinionated R Package
-Quickstart*. R package version 1.1.1,
+Quickstart*. R package version 1.1.2,
 <https://bootstrapper.visruth.com/>.
 
     @Manual{,
       title = {bootstrapper: Opinionated R Package Quickstart},
       author = {Visruth {Srimath Kandali}},
       year = {2026},
-      note = {R package version 1.1.1},
+      note = {R package version 1.1.2},
       url = {https://bootstrapper.visruth.com/},
     }
