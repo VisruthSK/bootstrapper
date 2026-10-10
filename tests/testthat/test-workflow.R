@@ -95,10 +95,6 @@ run_workflow_fixture <- function(
       NULL
     },
     use_pkgdown_github_pages = function() NULL,
-    use_spell_check = function(error = FALSE) {
-      expect_true(error)
-      NULL
-    },
     use_air = function() {
       writeLines("[format]", "air.toml")
       NULL
@@ -120,14 +116,6 @@ run_workflow_fixture <- function(
       NULL
     },
     .package = "bootstrapper"
-  )
-
-  local_mocked_bindings(
-    update_wordlist = function(confirm = FALSE) {
-      expect_false(confirm)
-      NULL
-    },
-    .package = "spelling"
   )
 
   expect_null(

@@ -154,14 +154,6 @@ test_that("pkg_setup runs expected top-level calls and setup sections", {
     .package = "bootstrapper"
   )
 
-  local_mocked_bindings(
-    update_wordlist = function(confirm = FALSE) {
-      expect_false(confirm)
-      NULL
-    },
-    .package = "spelling"
-  )
-
   expect_null(bootstrapper::pkg_setup(setup_touchstone = FALSE))
 
   expect_true("testthat" %in% calls$actions)
@@ -222,14 +214,6 @@ test_that("pkg_setup skips optional sections when disabled", {
     .package = "bootstrapper"
   )
 
-  local_mocked_bindings(
-    update_wordlist = function(confirm = FALSE) {
-      expect_false(confirm)
-      NULL
-    },
-    .package = "spelling"
-  )
-
   expect_null(
     bootstrapper::pkg_setup(
       setup_gha = FALSE,
@@ -271,14 +255,6 @@ test_that("pkg_setup runs AGENTS setup when enabled", {
     .package = "bootstrapper"
   )
 
-  local_mocked_bindings(
-    update_wordlist = function(confirm = FALSE) {
-      expect_false(confirm)
-      NULL
-    },
-    .package = "spelling"
-  )
-
   expect_null(bootstrapper::pkg_setup(
     setup_AGENTS = TRUE,
     setup_precommit = FALSE,
@@ -293,7 +269,6 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
     github_actions = list(),
     replacements = character(),
     workflow_replacements = character(),
-    spell = FALSE,
     writes = character()
   )
 
@@ -303,10 +278,6 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
       NULL
     },
     use_pkgdown_github_pages = function() NULL,
-    use_spell_check = function(error = FALSE) {
-      actions$spell <<- error
-      NULL
-    },
     .package = "usethis"
   )
 
@@ -333,7 +304,6 @@ test_that("setup_gha runs expected usethis, replacement, and template calls", {
   expect_identical(actions$github_actions[[1]][[1]], "check-standard")
   expect_true(isTRUE(actions$github_actions[[1]]$badge))
   expect_identical(actions$github_actions[[2]][[1]], "test-coverage")
-  expect_true(actions$spell)
   expect_identical(
     actions$replacements,
     c(
@@ -765,12 +735,12 @@ test_that("setup_formatter configures air and jarl together", {
   expect_identical(
     calls,
     c(
-      "use_air",
-      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
-      "air format .",
       "copy jarl.toml jarl.toml",
       "build_ignore jarl.toml",
       "jarl check . --fix --allow-dirty",
+      "use_air",
+      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
+      "air format .",
       paste(
         "copy",
         "format-suggest.yaml",
@@ -889,10 +859,10 @@ test_that("setup_formatter can skip format commands", {
   expect_identical(
     calls,
     c(
-      "use_air",
-      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
       "copy jarl.toml jarl.toml",
       "build_ignore jarl.toml",
+      "use_air",
+      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
       paste(
         "copy",
         "format-suggest.yaml",
@@ -969,12 +939,12 @@ test_that("setup_formatter skips formatter workflow when gha is disabled", {
   expect_identical(
     calls,
     c(
-      "use_air",
-      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
-      "air format .",
       "copy jarl.toml jarl.toml",
       "build_ignore jarl.toml",
-      "jarl check . --fix --allow-dirty"
+      "jarl check . --fix --allow-dirty",
+      "use_air",
+      paste("copy", "extensions.json", fs::path(".vscode", "extensions.json")),
+      "air format ."
     )
   )
 })

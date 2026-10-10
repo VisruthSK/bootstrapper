@@ -15,7 +15,6 @@ Depends:
 Imports: 
     cli,
     fs,
-    spelling,
     usethis,
     utils
 Suggests:

@@ -106,7 +106,6 @@ pkg_setup <- function(
   setup_gitattributes()
   usethis::use_tidy_description()
   cleanup_buildignore()
-  spelling::update_wordlist(confirm = FALSE)
 
   invisible(NULL)
 }
@@ -205,7 +204,6 @@ setup_gha <- function() {
     fs::path(".github", "workflows", "test-coverage.yaml")
   )
   usethis::use_pkgdown_github_pages()
-  usethis::use_spell_check(error = TRUE)
 
   find_replace_in_gha("actions/checkout@v4", "actions/checkout@v7")
   find_replace_in_gha(
