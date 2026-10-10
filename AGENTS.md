@@ -20,8 +20,8 @@ functionally blocked.
   [`usethis::use_import_from()`](https://usethis.r-lib.org/reference/use_import_from.html)
   or `use_package()`
 - Completion Pipeline (ordered, all must pass):
-  1.  `air format .`
-  2.  `jarl check . --fix --allow-dirty`
+  1.  `jarl check . --fix --allow-dirty`
+  2.  `air format .`
   3.  `devtools::document()`
   4.  `devtools::check()`
   5.  Report `covr::package_coverage()`
