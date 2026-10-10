@@ -1,7 +1,7 @@
 # Configure Formatter Defaults
 
 Sets up Air and/or Jarl formatting defaults. Optionally format the
-repository once.
+repository once. Runs Jarl then Air.
 
 ## Usage
 
