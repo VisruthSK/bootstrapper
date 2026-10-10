@@ -20,5 +20,5 @@ Invisibly returns \code{NULL}.
 }
 \description{
 Sets up Air and/or Jarl formatting defaults. Optionally
-format the repository once.
+format the repository once. Runs Jarl then Air.
 }

@@ -114,7 +114,7 @@ pkg_setup <- function(
 #' Configure Formatter Defaults
 #'
 #' Sets up Air and/or Jarl formatting defaults. Optionally
-#' format the repository once.
+#' format the repository once. Runs Jarl then Air.
 #'
 #' @param air Whether to configure Air formatting.
 #' @param jarl Whether to configure Jarl linting.
@@ -129,6 +129,13 @@ setup_formatter <- function(
   format = TRUE,
   gha = TRUE
 ) {
+  if (jarl) {
+    copy_template_file("jarl.toml", "jarl.toml")
+    usethis::use_build_ignore("jarl.toml")
+    if (format) {
+      silent_system2("jarl", c("check", ".", "--fix", "--allow-dirty"))
+    }
+  }
   if (air) {
     usethis::use_air()
     copy_template_file(
@@ -137,13 +144,6 @@ setup_formatter <- function(
     )
     if (format) {
       silent_system2("air", c("format", "."))
-    }
-  }
-  if (jarl) {
-    copy_template_file("jarl.toml", "jarl.toml")
-    usethis::use_build_ignore("jarl.toml")
-    if (format) {
-      silent_system2("jarl", c("check", ".", "--fix", "--allow-dirty"))
     }
   }
 
